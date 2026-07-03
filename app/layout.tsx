@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Lato } from "next/font/google";
 import "./globals.css";
+import React from "react";
 
 const LatoClass = Lato({
   weight: ['100', '300', '400', '700', '900'],
@@ -18,11 +19,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${LatoClass} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
-    </html>
+        <html
+            lang="en"
+            className={`${LatoClass} h-full antialiased`}
+        >
+        <body className="min-h-full flex flex-col">{children}</body>
+        </html>
   );
 }
