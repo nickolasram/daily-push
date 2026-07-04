@@ -10,8 +10,8 @@ export async function POST(){
         const session = await getSession();
         const username = session.username as string;
         const poolData = {
-            UserPoolId: process.env.AWS_USER_POOL_ID as string,
-            ClientId: process.env.AWS_CLIENT_ID as string,
+            UserPoolId: process.env.NEXT_PUBLIC_USER_POOL_ID as string,
+            ClientId: process.env.NEXT_PUBLIC_CLIENT_ID as string,
         }
         const userPool = new CognitoUserPool(poolData);
         const userData = {
