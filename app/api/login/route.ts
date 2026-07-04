@@ -4,10 +4,23 @@ import {
     CognitoUser,
     AuthenticationDetails
 } from 'amazon-cognito-identity-js';
+import {getSession} from "@/session/actions";
+
+interface potentialResult{
+    idToken?:string;
+}
+
+function asyncAuthentication(cognitoUser:CognitoUser, authDetails: AuthenticationDetails) {
+    return new Promise((resolve,reject)=>{
+        cognitoUser.authenticateUser(authDetails,{
+            onSuccess: resolve,
+            onFailure: reject
+        })
+    })
+}
 
 export async function POST(req: NextRequest){
     try{
-        // const session = await getSession();
         const {username, password} = await req.json();
         const authData = {
             Username: username,
@@ -24,16 +37,15 @@ export async function POST(req: NextRequest){
             Pool: userPool,
         }
         const cognitoUser = new CognitoUser(userData);
-        cognitoUser.authenticateUser(authDetails,{
-            onSuccess: function(result){
-                const accessToken = result.getAccessToken().getJwtToken();
-                console.log(accessToken);
-            },
-            onFailure: function(err){
-                console.log(err.message || JSON.stringify(err));
-            }
-        });
-        console.log(username, password);
+        const result:potentialResult = await asyncAuthentication(cognitoUser, authDetails) as potentialResult;
+        if ('idToken' in result) {
+            const session = await getSession();
+            session.isLoggedIn = true;
+            session.username = username;
+            await session.save();
+        } else {
+            NextResponse.json({error: result}, {status:500});
+        }
         return NextResponse.json({success: true}, {status:200});
     } catch (err) {
         return NextResponse.json({error: err}, {status:500});
