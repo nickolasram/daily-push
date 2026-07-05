@@ -70,6 +70,8 @@ const DropdownMenuContent = forwardRef<
     <DropdownMenuPrimitive.Content
       ref={ref}
       sideOffset={sideOffset}
+        //TODO: fix without any
+        // @ts-expect-error any is okay for now
       onCloseAutoFocus={(e) => e.preventDefault()}
       className={cn("tiptap-dropdown-menu", className)}
       {...props}
