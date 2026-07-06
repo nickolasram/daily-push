@@ -49,10 +49,11 @@ interface TipTapProps {
     onChange: (description: string) => void,
     editorBG: string,
     defaultColor: string,
-    key?: number
+    ikey?: number|string,
 }
 
-const TextEditor = ({editorContent, onChange, editorBG, defaultColor, key}: TipTapProps) => {
+
+const TextEditor = ({editorContent, onChange, editorBG, defaultColor, ikey}: TipTapProps) => {
     const [state, dispatch] = useReducer(
         // TODO: TEST IF THIS TYPE WORKS
         (state: Record<string, unknown>, newState: Record<string, unknown>) => ({...state, ...newState}),
