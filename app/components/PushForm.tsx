@@ -35,7 +35,8 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
         ) => ({...state, ...newState}),
         {
             editorKey:0,
-            defaultDescription:''
+            defaultDescription:'',
+            description:'',
         }
     );
     const setDescription=(description:string)=>{
@@ -99,7 +100,7 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                     return (
                         <div className="md:w-150 max-w-[calc(100vh - 60px)]" key={i}>
                             <TextEditor
-                                key={state.editorKey as number}
+                                ikey={state.editorKey as number}
                                 editorContent={state.defaultDescription as string}
                                 onChange={setDescription}
                                 editorBG={'bg-white'}

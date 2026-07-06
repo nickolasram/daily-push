@@ -28,6 +28,11 @@ const pfNodes:pushFormNode[] = [
         max: 5,
     },
     {
+        type:'richTextField',
+        name:'rtf',
+        id: 'rtf'
+    },
+    {
         type:'custom',
         name:'article',
         id: 'article',
