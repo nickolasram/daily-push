@@ -1,5 +1,5 @@
 'use client'
-import {Fragment, ReactNode, SubmitEventHandler, useReducer} from "react";
+import {Fragment, ReactNode, RefObject, SubmitEventHandler, useReducer, useRef} from "react";
 import { Field, Fieldset, Input, Label, Legend, Select, Textarea } from '@headlessui/react'
 import TextEditor from "@/app/components/textEditor/TextEditor";
 
@@ -27,6 +27,7 @@ interface pushFormProps {
 }
 
 const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRoundedDefault}:pushFormProps)=>{
+    // TODO: Right now, can only save the value of one right text field
     const [state, dispatch] = useReducer(
         // TODO: fix typing without ignoring
         (
@@ -39,6 +40,7 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
             description:'',
         }
     );
+    const formRef = useRef<HTMLFormElement|null>(null);
     const setDescription=(description:string)=>{
         dispatch({description: description})
     }
@@ -58,6 +60,7 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
             onSubmit(event);
         }}
             className={`p-6 w-fit bg-white text-black flex flex-col gap-3 justify-center ${rounded??'rounded-sm'}`}
+              ref={formRef}
         >
             { fields.map((field,i) =>{
                 const inputClassNameDefault=`border ${field.inputRounded??inputRoundedDefault??'rounded-xs'}`
@@ -70,7 +73,11 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                                 >
                                     {field.label??field.name}
                                 </Label>
-                                <Input className={inputClassNameDefault} type="text"/>
+                                <Input
+                                    className={inputClassNameDefault}
+                                    name={field.name}
+                                    id={field.id}
+                                    type="text"/>
                             </Field>
                         )
                     }
@@ -86,6 +93,8 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                             <Input
                                 className={inputClassNameDefault}
                                 type="number"
+                                name={field.name}
+                                id={field.id}
                                 min={field.min??Number.MIN_VALUE}
                                 max={field.max??Number.MAX_VALUE}
                                 style={{
@@ -98,15 +107,18 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                 }
                 else if(field.type === 'richTextField'){
                     return (
-                        <div className="md:w-150 max-w-[calc(100vh - 60px)]" key={i}>
-                            <TextEditor
-                                ikey={state.editorKey as number}
-                                editorContent={state.defaultDescription as string}
-                                onChange={setDescription}
-                                editorBG={'bg-white'}
-                                defaultColor={'text-black'}
-                            />
-                        </div>
+                        <Fragment key={i}>
+                            <input type={'text'} name={field.name} readOnly={true} className="hidden size-0" value={state.description as string} />
+                            <div className="md:w-150 max-w-[calc(100vh - 60px)]">
+                                <TextEditor
+                                    ikey={state.editorKey as number}
+                                    editorContent={state.defaultDescription as string}
+                                    onChange={setDescription}
+                                    editorBG={'bg-white'}
+                                    defaultColor={'text-black'}
+                                />
+                            </div>
+                        </Fragment>
                     )
                 }
                 else if(field.type == 'custom' && field.node){

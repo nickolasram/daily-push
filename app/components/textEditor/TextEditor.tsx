@@ -49,7 +49,7 @@ interface TipTapProps {
     onChange: (description: string) => void,
     editorBG: string,
     defaultColor: string,
-    ikey?: number|string
+    ikey?: number|string,
 }
 
 
