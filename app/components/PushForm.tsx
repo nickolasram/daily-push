@@ -1,18 +1,80 @@
 'use client'
-import {Fragment, ReactNode, RefObject, SubmitEventHandler, useReducer, useRef} from "react";
-import { Field, Fieldset, Input, Label, Legend, Select, Textarea } from '@headlessui/react'
+import {Fragment, ReactNode, SubmitEventHandler, useReducer, useState} from "react";
+import { Field, Input, Label, Textarea, Checkbox, Legend, Fieldset, Radio, RadioGroup } from '@headlessui/react'
 import TextEditor from "@/app/components/textEditor/TextEditor";
 
+interface keyValueBlockProps {
+    name: string
+}
+
+export function generateKVRecord(name:string, formData:FormData) {
+    const returnedRecord:Record<string,string> = {}
+    const recordKeys = formData.getAll(name+'Key') as [string];
+    const recordValues = formData.getAll(name+'Value') as [string];
+    const listLength = recordKeys.length;
+    for(let i=0;i<listLength;i++){
+        returnedRecord[recordKeys[i]] = recordValues[i];
+    }
+    return returnedRecord;
+}
+
+const KeyValueBlock=({name}:keyValueBlockProps)=>{
+    const [keyValue, setKeyValue] = useState<string>("[empty]")
+    const [valueValue, setValueValue] = useState<string>("[empty]")
+    // TODO: Make more flexible width
+    return(
+        <div className={'flex flex-col border-black border-b-1'}>
+            <input className={'hidden size-0'} type={'checkbox'} name={name+'Key'} value={keyValue} defaultChecked={true} readOnly={true} />
+            <input placeholder={'key'} className={'border-black w-60 border-b-1'} type={'text'} onChange={(e)=>setKeyValue(e.target.value)} />
+            <input className={'hidden size-0'} type={'checkbox'} name={name+'Value'} value={valueValue} defaultChecked={true} readOnly={true} />
+            <input placeholder={'value'} className={'w-60 backdrop-brightness-95'} type={'text'} onChange={(e)=>setValueValue(e.target.value)} />
+        </div>
+    )
+}
+
+interface keyValueFieldProps {
+    name: string,
+    rounded:'rounded-xs'|'rounded-sm'|'rounded-md'|'rounded-lg'|'rounded-xl'|string,
+}
+
+const KeyValueField=({name,rounded}:keyValueFieldProps)=>{
+    const [blockCount,setBlockCount]=useState(1)
+    return (
+        <div className={`flex flex-col border ${rounded}`}>
+            {[...Array(blockCount)].map((_,i)=>{
+                return(
+                    <KeyValueBlock name={name} key={i} />
+                )
+            })
+            }
+            {/*TODO:replace with headless ui button*/}
+            <button
+                type='button'
+                onClick={()=>setBlockCount(blockCount+1)}
+                className={'border-none flex gap-2 items-center'}
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
+                    <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clipRule="evenodd" />
+                </svg>
+                <p className={'text-sm text-gray-900'}>Add Key,Value</p>
+            </button>
+        </div>
+    )
+}
+// TODO: Make ID optional (defaulting to name) and label mandatory
+// TODO: allow default options
 export interface pushFormNode {
-    name:string,
-    id:string,
-    label?:string,
-    type:'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom',
-    node?:ReactNode,
-    labelPlacement?:'column'|'row',
-    inputRounded?:'rounded-xs'|'rounded-sm'|'rounded-md'|'rounded-lg'|'rounded-xl'|string,
-    max?:number,
-    min?:number,
+    defaultCheckedIndex?:number,
+    id: string,
+    inputRounded?: 'rounded-none' | 'rounded-xs' | 'rounded-sm' | 'rounded-md' | 'rounded-lg' | 'rounded-xl' | string,
+    label?: string,
+    labelPlacement?: 'column' | 'row',
+    max?: number,
+    min?: number,
+    name: string,
+    node?: ReactNode,
+    options?:Array<{ value:string, label:string, defaultChecked?:boolean }>,
+    type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check',
 //     placeholder
 //     default
 //     onChange
@@ -20,10 +82,10 @@ export interface pushFormNode {
 
 interface pushFormProps {
     fields: pushFormNode[],
+    inputRoundedDefault?: 'rounded-xs' | 'rounded-sm' | 'rounded-md' | 'rounded-lg' | 'rounded-xl' | string,
+    labelPlacementDefault?: 'column' | 'row',
     onSubmit: SubmitEventHandler<HTMLFormElement>,
-    labelPlacementDefault?:'column'|'row',
-    inputRoundedDefault?:'rounded-xs'|'rounded-sm'|'rounded-md'|'rounded-lg'|'rounded-xl'|string,
-    rounded?:'rounded-xs'|'rounded-sm'|'rounded-md'|'rounded-lg'|'rounded-xl'|string,
+    rounded?: 'rounded-xs' | 'rounded-sm' | 'rounded-md' | 'rounded-lg' | 'rounded-xl' | string,
 }
 
 const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRoundedDefault}:pushFormProps)=>{
@@ -40,7 +102,6 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
             description:'',
         }
     );
-    const formRef = useRef<HTMLFormElement|null>(null);
     const setDescription=(description:string)=>{
         dispatch({description: description})
     }
@@ -60,7 +121,6 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
             onSubmit(event);
         }}
             className={`p-6 w-fit bg-white text-black flex flex-col gap-3 justify-center ${rounded??'rounded-sm'}`}
-              ref={formRef}
         >
             { fields.map((field,i) =>{
                 const inputClassNameDefault=`border ${field.inputRounded??inputRoundedDefault??'rounded-xs'}`
@@ -108,6 +168,7 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                 else if(field.type === 'richTextField'){
                     return (
                         <Fragment key={i}>
+                            <p>{field.label??field.name}</p>
                             <input type={'text'} name={field.name} readOnly={true} className="hidden size-0" value={state.description as string} />
                             <div className="md:w-150 max-w-[calc(100vh - 60px)]">
                                 <TextEditor
@@ -123,6 +184,116 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                 }
                 else if(field.type == 'custom' && field.node){
                         return <Fragment key={i}>{field.node}</Fragment>
+                }
+                else if(field.type == 'keyValueField'){
+                    return(
+                        <div key={i} className="flex"
+                                  style={{flexDirection:field.labelPlacement??labelPlacementDefault??'column'}}>
+                            <p style={{minWidth: longestLabel + 1 + 'ch',}}>{field.label??field.name}</p>
+                            <KeyValueField name={field.name} rounded={field.inputRounded??inputRoundedDefault??'rounded-xs'} />
+                        </div>
+                    )
+
+                } else if(field.type == 'textArea'){
+                    return(
+                        <Field key={i} className="flex"
+                               style={{flexDirection:field.labelPlacement??labelPlacementDefault??'column'}}>
+                            <Label
+                                style={{minWidth: longestLabel + 1 + 'ch',}}
+                            >
+                                {field.label??field.name}
+                            </Label>
+                            {/*TODO: Make rows customizable*/}
+                            <Textarea
+                                className={inputClassNameDefault}
+                                name={field.name}
+                                id={field.id}
+                                rows={6}
+                                style={{
+                                    //TODO: Make width customizable
+                                    maxWidth:'200px',
+                                    paddingInline:'8px',
+                                }}
+                            />
+                        </Field>
+                    )
+                }
+                else if(field.type == 'check') {
+                    const options = field.options??[]
+                    return (
+                        <Fieldset key={i} className="flex"
+                               style={{flexDirection:field.labelPlacement??labelPlacementDefault??'column'}}>
+                            <Legend
+                                style={{minWidth: longestLabel + 1 + 'ch',}}
+                            >
+                                {field.label??field.name}
+                            </Legend>
+                            <div>
+                                { options.map((option,j) =>{
+                                  return (
+                                      <Field className={'flex gap-1 items-center cursor-pointer'} key={j}>
+                                          <Checkbox
+                                              defaultChecked={option.defaultChecked??false}
+                                              name={option.value??''}
+                                              className="group block size-4 rounded border bg-white data-checked:bg-gray-900"
+                                          >
+                                              <svg className="stroke-white opacity-0 group-data-checked:opacity-100" viewBox="0 0 14 14" fill="none">
+                                                  <path d="M3 8L6 11L11 3.5" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                                              </svg>
+                                          </Checkbox>
+                                          <Label className={'cursor-pointer'}>{option.label}</Label>
+                                      </Field>
+                                  )
+                                })
+                                }
+                            </div>
+                        </Fieldset>
+                    )
+                }
+                else if(field.type == 'radio'){
+                    const options = field.options??[]
+                    return (
+                        <div key={i} className="flex"
+                             style={{flexDirection:field.labelPlacement??labelPlacementDefault??'column'}}>
+                            <p style={{minWidth: longestLabel + 1 + 'ch',}}>{field.label??field.name}</p>
+                            <RadioGroup
+                                name={field.name}
+                                defaultValue={options[field.defaultCheckedIndex??0]??'no-options-provided'}
+                            >
+                                {options.map((option,j) =>{
+                                  return (
+                                      <Field key={j} className="flex gap-1 items-center cursor-pointer">
+                                          <Radio
+                                              className={'flex size-5 items-center justify-center rounded-full border bg-white data-checked:bg-gray-900'}
+                                              value={option.value}>
+                                              <span className="invisible size-2 rounded-full bg-white group-data-checked:visible" />
+                                          </Radio>
+                                          <Label>{option.label??option.value}</Label>
+                                      </Field>
+                                  )
+                                })
+                                }
+                            </RadioGroup>
+                        </div>
+                    )
+                }
+                else if(field.type === 'date'){
+                    return (
+                        <Field key={i} className="flex"
+                               style={{flexDirection:field.labelPlacement??labelPlacementDefault??'column'}}>
+                            <Label
+                                style={{minWidth: longestLabel + 1 + 'ch',}}
+                            >
+                                {field.label??field.name}
+                            </Label>
+                            {/*TODO: enable setting max and min/feedback */}
+                            <Input
+                                className={inputClassNameDefault}
+                                name={field.name}
+                                id={field.id}
+                                type="date"/>
+                        </Field>
+                    )
                 }
                 else {
                             return(
