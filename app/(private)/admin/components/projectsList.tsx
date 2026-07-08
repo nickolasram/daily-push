@@ -27,7 +27,7 @@ async function getProjects() {
 }
 
 export default async function ProjectsList() {
-    let projects = await getProjects() as PushProject[];
+    const projects = await getProjects() as PushProject[];
     return (
         <>
             { projects!.length == 0 &&

@@ -23,6 +23,8 @@ export default function TagForm(){
                 entry[0]=='title'
             )
         )
+        // TODO: clean up any
+        // @ts-ignore
         const dataObject:Record<string,any>={};
         for(const entry of entriesNoHL){
             dataObject[entry[0]] = entry[1];

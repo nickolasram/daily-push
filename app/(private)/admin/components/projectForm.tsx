@@ -57,6 +57,8 @@ const handleSubmit = async (event:SubmitEvent<HTMLFormElement>) => {
             entry[0]!='highlightColor'&&entry[0]!='kvfKey'&&entry[0]!='kvfValue'&&entry[0]!='tags'
         )
     )
+    // TODO: Replace any
+    // @ts-ignore
     const dataObject:Record<string,any>={};
     for(const entry of entriesNoHL){
         dataObject[entry[0]] = entry[1];

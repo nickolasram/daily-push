@@ -28,7 +28,7 @@ async function getTags() {
 }
 
 const TagsList=async()=>{
-    let tags = await getTags() as PushTag[];
+    const tags = await getTags() as PushTag[];
     return (
         <>
             { tags!.length == 0 &&
