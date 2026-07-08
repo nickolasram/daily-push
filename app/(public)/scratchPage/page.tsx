@@ -1,3 +1,7 @@
-export default function Page(){
-    return (<p>scratch</p>)
+export default async function Page(){
+    return (
+        <div>
+            <p>testing db get</p>
+        </div>
+    )
 }

@@ -122,7 +122,6 @@ const Page=()=>{
                         )
                     )
                     entriesNoHL.push(['kvf',kvList as unknown as FormDataEntryValue])
-                    console.log(entriesNoHL)
                     setSubmittedEntries(entriesNoHL);
                 }}
             />

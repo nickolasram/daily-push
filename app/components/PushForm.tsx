@@ -1,5 +1,5 @@
 'use client'
-import {Fragment, ReactNode, SubmitEventHandler, useReducer, useState} from "react";
+import {Fragment, ReactNode, SubmitEvent, useReducer, useState} from "react";
 import { Field, Input, Label, Textarea, Checkbox, Legend, Fieldset, Radio, RadioGroup } from '@headlessui/react'
 import TextEditor from "@/app/components/textEditor/TextEditor";
 
@@ -84,7 +84,7 @@ interface pushFormProps {
     fields: pushFormNode[],
     inputRoundedDefault?: 'rounded-xs' | 'rounded-sm' | 'rounded-md' | 'rounded-lg' | 'rounded-xl' | string,
     labelPlacementDefault?: 'column' | 'row',
-    onSubmit: SubmitEventHandler<HTMLFormElement>,
+    onSubmit: (event: SubmitEvent<HTMLFormElement>)=>void,
     rounded?: 'rounded-xs' | 'rounded-sm' | 'rounded-md' | 'rounded-lg' | 'rounded-xl' | string,
 }
 
