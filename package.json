@@ -13,6 +13,7 @@
     "@aws-sdk/lib-dynamodb": "^3.1081.0",
     "@aws-sdk/util-dynamodb": "^3.996.5",
     "@headlessui/react": "^2.2.10",
+    "@reactuses/core": "^6.4.0",
     "@tiptap/extension-emoji": "^3.27.1",
     "@tiptap/extension-highlight": "^3.27.1",
     "@tiptap/extension-subscript": "^3.27.1",
