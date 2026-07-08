@@ -1,7 +1,7 @@
-export default async function Page(){
+export default function Page(){
     return (
         <div>
-            <p>testing db get</p>
+            <p>testing tag field</p>
         </div>
     )
 }

@@ -1,6 +1,6 @@
 'use client'
-import {Fragment, ReactNode, SubmitEvent, useReducer, useState} from "react";
-import { Field, Input, Label, Textarea, Checkbox, Legend, Fieldset, Radio, RadioGroup } from '@headlessui/react'
+import {Fragment, ReactNode, RefObject, SubmitEvent, useReducer, useRef, useState} from "react";
+import {Field, Input, Label, Textarea, Checkbox, Legend, Fieldset, Radio, RadioGroup, Button} from '@headlessui/react'
 import TextEditor from "@/app/components/textEditor/TextEditor";
 
 interface keyValueBlockProps {
@@ -61,6 +61,83 @@ const KeyValueField=({name,rounded}:keyValueFieldProps)=>{
         </div>
     )
 }
+
+interface TagFormProps{
+    name:string,
+    possibleTagValues:string[],
+}
+
+const TagForm = ({name,possibleTagValues}:TagFormProps)=>{
+    const [matchingValues,setMatchingValues]=useState<string[]>([])
+    const [verifiedTags,setVerifiedTags]=useState<string[]>([])
+    const inputRef = useRef<HTMLInputElement|null>(null)
+
+    const handleChange=(input:string)=>{
+        if(input?.length==0){
+            setMatchingValues([])
+        } else {
+            const regexValue = input + '.*'
+            const re = new RegExp(regexValue, 'i')
+            setMatchingValues(possibleTagValues.filter(word=>re.test(word)))
+        }
+    }
+
+    const AcceptedTag=({value}:{value:string})=>{
+        return (
+            <>
+                <input name={name} value={value} readOnly={true} className={'hidden size-0'} />
+                <Button
+                    type="button"
+                    className={'bg-cyan-800 border-3 grow-0 w-min h-min px-1 flex gap-1 items-center rounded-lg'}
+                    onClick={()=>{setVerifiedTags(verifiedTags.filter(tag=>tag!==value))}}
+                >
+                    <p>{value}</p>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
+                        <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z" clipRule="evenodd" />
+                    </svg>
+                </Button>
+            </>
+        )
+    }
+
+    return (
+        <div>
+            <div className={'border border-black min-h-8 p-2 w-50 max-w-50 flex flex-wrap gap-2'}>
+                {verifiedTags.map((v,i)=>{
+                    return <AcceptedTag value={v} key={i}/>
+                })
+                }
+                <input
+                    type={'text'}
+                    placeholder={'Tag...'}
+                    ref={inputRef}
+                    onChange={event => handleChange(event.target.value)}
+                    className={'max-w-40 min-w-15 basis-0 grow'}/>
+            </div>
+            { matchingValues.length > 0 &&
+                <div className={'border border-white flex flex-col bg-gray-700 border-t-0 w-50'}>
+                    { matchingValues.map((v,i)=>{
+                        return (
+                            <Button
+                                key={i}
+                                className={'text-left cursor-pointer'}
+                                onClick={()=> {
+                                    inputRef.current!.value=''
+                                    setMatchingValues([])
+                                    setVerifiedTags([...verifiedTags, v])
+                                }}
+                            >
+                                {v}
+                            </Button>
+                        )
+                    })
+                    }
+                </div>
+            }
+        </div>
+    )
+}
+
 // TODO: Make ID optional (defaulting to name) and label mandatory
 // TODO: allow default options
 export interface pushFormNode {
@@ -74,7 +151,8 @@ export interface pushFormNode {
     name: string,
     node?: ReactNode,
     options?:Array<{ value:string, label:string, defaultChecked?:boolean }>,
-    type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check',
+    tags?: string[],
+    type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags',
 //     placeholder
 //     default
 //     onChange
@@ -86,9 +164,10 @@ interface pushFormProps {
     labelPlacementDefault?: 'column' | 'row',
     onSubmit: (event: SubmitEvent<HTMLFormElement>)=>void,
     rounded?: 'rounded-xs' | 'rounded-sm' | 'rounded-md' | 'rounded-lg' | 'rounded-xl' | string,
+    ref?: RefObject<HTMLFormElement|null>,
 }
 
-const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRoundedDefault}:pushFormProps)=>{
+const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRoundedDefault,ref}:pushFormProps)=>{
     // TODO: Right now, can only save the value of one right text field
     const [state, dispatch] = useReducer(
         // TODO: fix typing without ignoring
@@ -120,7 +199,8 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
         <form onSubmit={(event)=>{
             onSubmit(event);
         }}
-            className={`p-6 w-fit bg-white text-black flex flex-col gap-3 justify-center ${rounded??'rounded-sm'}`}
+          className={`p-6 w-fit bg-white text-black flex flex-col gap-3 justify-center ${rounded??'rounded-sm'}`}
+          ref={ref??null}
         >
             { fields.map((field,i) =>{
                 const inputClassNameDefault=`border ${field.inputRounded??inputRoundedDefault??'rounded-xs'}`
@@ -293,6 +373,11 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                                 id={field.id}
                                 type="date"/>
                         </Field>
+                    )
+                }
+                else if(field.type == 'tags'){
+                    return (
+                        <TagForm key={i} name={field.name} possibleTagValues={field.tags??[]} />
                     )
                 }
                 else {

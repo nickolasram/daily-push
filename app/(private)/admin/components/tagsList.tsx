@@ -1,9 +1,10 @@
 'use server'
+
 import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
 import {DynamoDBDocumentClient, QueryCommand} from "@aws-sdk/lib-dynamodb";
-import {PushProject} from "@/types";
+import {PushTag} from "@/types";
 
-async function getProjects() {
+async function getTags() {
     function docClient(){
         const dbClient = new DynamoDBClient({
             credentials:{
@@ -14,29 +15,29 @@ async function getProjects() {
         return DynamoDBDocumentClient.from(dbClient)
     }
 
-    const allProjects = new QueryCommand({
+    const allTags = new QueryCommand({
         TableName:'daily-push',
-        KeyConditionExpression: 'objectType = :pr',
+        KeyConditionExpression: 'objectType = :ta',
         ExpressionAttributeValues: {
-            ':pr': 'project'
+            ':ta': 'tag'
         }
     })
 
-    const response = await docClient().send(allProjects);
+    const response = await docClient().send(allTags);
     return response.Items;
 }
 
-export default async function ProjectsList() {
-    let projects = await getProjects() as PushProject[];
+const TagsList=async()=>{
+    let tags = await getTags() as PushTag[];
     return (
         <>
-            { projects!.length == 0 &&
+            { tags!.length == 0 &&
                 <p>no projects found</p>
             }
-            { projects!.length > 0 &&
+            { tags!.length > 0 &&
                 <>
-                    { projects!.map((project,i) => {
-                        return (<p key={i}>{project.title}</p>)
+                    { tags!.map((tag,i) => {
+                        return (<p key={i}>{tag.title}</p>)
                     })
                     }
                 </>
@@ -44,3 +45,5 @@ export default async function ProjectsList() {
         </>
     )
 }
+
+export default TagsList;

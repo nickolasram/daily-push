@@ -6,3 +6,9 @@ export interface PushProject {
     sick:boolean,
     away:boolean
 }
+
+export interface PushTag{
+    objectType: 'tag',
+    objectId: string,
+    title: string,
+}
