@@ -15,7 +15,7 @@ interface TTFChildProps {
 
 export function TTFChild({children, className}:TTFChildProps){
     return (
-        <TabPanel as={'div'} className={className??''}>
+        <TabPanel as={'div'} className={className??'p-6'}>
             {children}
         </TabPanel>
     )

@@ -1,7 +1,8 @@
 'use client'
 
 import PushForm, {pushFormNode} from "@/app/components/PushForm";
-import {SubmitEvent} from "react";
+import {SubmitEvent, useState} from "react";
+import {Button, Dialog, DialogPanel} from "@headlessui/react";
 
 const formNodes =(tags:string[]):pushFormNode[]=> ([
         {
@@ -47,44 +48,67 @@ const formNodes =(tags:string[]):pushFormNode[]=> ([
     ]
 )
 
-const handleSubmit = async (event:SubmitEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.target);
-    const entries:[string,FormDataEntryValue][] =[...data.entries()]
-    const tags= data.getAll('tags') as string[]
-    const entriesNoHL:[string, FormDataEntryValue][] = entries.filter(
-        (entry)=>(
-            entry[0]!='highlightColor'&&entry[0]!='kvfKey'&&entry[0]!='kvfValue'&&entry[0]!='tags'
-        )
-    )
-    const dataObject:Record<string,FormDataEntryValue|string[]>={};
-    for(const entry of entriesNoHL){
-        dataObject[entry[0]] = entry[1];
-    }
-    dataObject.tags = tags;
-    await fetch('/api/projects', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            data:dataObject
-        }),
-    }).then(async res => {
-        if (res.ok) {
-            return res.json()
-        } else {
-            console.log(res)
-            throw new Error(`${res.statusText}`)
-        }
-    })
-}
-
 interface ProjectFormProps{
     tags:string[]
 }
 
 export default function ProjectForm({tags}:ProjectFormProps) {
+    const [open, setOpen] = useState(false);
     const fields = formNodes(tags);
+
+    const handleSubmit = async (event:SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        const entries:[string,FormDataEntryValue][] =[...data.entries()]
+        const tags= data.getAll('tags') as string[]
+        const entriesNoHL:[string, FormDataEntryValue][] = entries.filter(
+            (entry)=>(
+                entry[0]!='highlightColor'&&entry[0]!='kvfKey'&&entry[0]!='kvfValue'&&entry[0]!='tags'
+            )
+        )
+        const dataObject:Record<string,FormDataEntryValue|string[]>={};
+        for(const entry of entriesNoHL){
+            dataObject[entry[0]] = entry[1];
+        }
+        dataObject.tags = tags;
+        await fetch('/api/projects', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                data:dataObject
+            }),
+        }).then(async res => {
+            if (res.ok) {
+                setOpen(false);
+                return res.json()
+            } else {
+                console.log(res)
+                throw new Error(`${res.statusText}`)
+            }
+        })
+    }
+
     return (
-        <PushForm fields={fields} onSubmit={handleSubmit} />
+        <>
+            <Button
+                className={'size-45 aspect-square border-dashed border-white gap-1 justify-center items-center flex'}
+                onClick={()=>setOpen(!open)}
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
+                    <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clipRule="evenodd" />
+                </svg>
+                <p>
+                    New Project
+                </p>
+            </Button>
+            <Dialog open={open} onClose={() => setOpen(false)} className="relative z-50">
+                <div className="fixed inset-0 flex w-screen items-center justify-center   backdrop-blur-xl backdrop-brightness-50">
+                    <DialogPanel className=" text-black py-10 min-w-xs space-y-4 flex flex-col justify-between bg-white">
+                        <p className={'text-lg px-6'}>New Project</p>
+                        <PushForm fields={fields} onSubmit={handleSubmit} />
+                    </DialogPanel>
+                </div>
+            </Dialog>
+        </>
     )
 }

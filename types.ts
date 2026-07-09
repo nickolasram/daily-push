@@ -4,7 +4,9 @@ export interface PushProject {
     title: string,
     description: string,
     sick:boolean,
-    away:boolean
+    away:boolean,
+    date: string,
+    tags: string[],
 }
 
 export interface PushTag{

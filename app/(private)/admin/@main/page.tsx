@@ -2,7 +2,6 @@
 
 import { Suspense } from "react";
 import ProjectsList from "@/app/(private)/admin/components/projectsList";
-import LogoutBtn from "@/app/(private)/admin/components/logoutBtn";
 import TagForm from "@/app/(private)/admin/components/tagForm";
 import TagsList from "@/app/(private)/admin/components/tagsList";
 import FormTagLoader from "@/app/(private)/admin/components/formTagLoader";
@@ -11,8 +10,9 @@ import ThinTabsFramework, {TTFChild} from "@/app/components/frameworks/thinTabsF
 
 const Page=()=>{
     return (
-        <ThinTabsFramework tabs={['Projects','Tags']} tabListAddendum={<LogoutBtn/>}>
+        <ThinTabsFramework tabs={['Projects','Tags', 'Demos', 'Ideas']}>
             <TTFChild>
+                <h2 className={'mb-6'}>Projects</h2>
                 <Suspense fallback={<p>Loading...</p>}>
                     <ProjectsList />
                 </Suspense>
@@ -21,10 +21,19 @@ const Page=()=>{
                 </Suspense>
             </TTFChild>
             <TTFChild>
+                <h2 className={'mb-6'}>Project Tags</h2>
                 <Suspense fallback={<p>Loading...</p>}>
-                    <TagsList />
+                    <>
+                        <TagsList />
+                        <TagForm />
+                    </>
                 </Suspense>
-                <TagForm />
+            </TTFChild>
+            <TTFChild>
+                <h2 className={'mb-6'}>Demos</h2>
+            </TTFChild>
+            <TTFChild>
+                <h2 className={'mb-6'}>Ideas</h2>
             </TTFChild>
         </ThinTabsFramework>
     )

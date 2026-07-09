@@ -1,6 +1,6 @@
 import {NextResponse, NextRequest} from "next/server";
 import {DynamoDBClient} from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import {PushTag} from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -76,6 +76,24 @@ export async function POST(req: NextRequest) {
 //
 // }
 //
-// export async function PATCH(req: NextRequest, res: NextResponse) {
-//
-// }
+export async function PATCH(req: NextRequest) {
+    const body = await req.json();
+    const data = body.data as PushTag;
+    try {
+        const command = new UpdateCommand({
+            TableName: 'daily-push',
+            Key: {
+                objectType: data.objectType,
+                objectId: data.objectId,
+            },
+            UpdateExpression: "SET title = :nt",
+            ExpressionAttributeValues: {
+                ":nt": data.title,
+            }
+        });
+        await docClient().send(command)
+        return NextResponse.json({success: true}, {status:200});
+    } catch (error) {
+        return NextResponse.json({error: error}, {status:500});
+    }
+}
