@@ -153,6 +153,7 @@ export interface pushFormNode {
     options?:Array<{ value:string, label:string, defaultChecked?:boolean }>,
     tags?: string[],
     type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags',
+    defaultValue?: string | number,
 //     placeholder
 //     default
 //     onChange
@@ -217,7 +218,9 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                                     className={inputClassNameDefault}
                                     name={field.name}
                                     id={field.id}
-                                    type="text"/>
+                                    type="text"
+                                    defaultValue={field.defaultValue??''}
+                                />
                             </Field>
                         )
                     }

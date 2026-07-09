@@ -1,7 +1,8 @@
 'use client'
 
 import PushForm, {pushFormNode} from "@/app/components/PushForm";
-import {SubmitEvent, useRef} from "react";
+import {SubmitEvent, useState} from "react";
+import {Dialog, DialogPanel, Button} from "@headlessui/react";
 
 const formNodes:pushFormNode[]=[
     {
@@ -13,7 +14,7 @@ const formNodes:pushFormNode[]=[
 ]
 
 export default function TagForm(){
-    const formRef = useRef<HTMLFormElement|null>(null);
+    const [open, setOpen] = useState(false);
     const handleSubmit = async (event:SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.target);
@@ -35,7 +36,7 @@ export default function TagForm(){
             }),
         }).then(async res => {
             if (res.ok) {
-                formRef.current?.reset();
+                setOpen(false);
                 return res.json()
             } else {
                 console.log(res)
@@ -45,6 +46,24 @@ export default function TagForm(){
     }
 
     return (
-        <PushForm fields={formNodes} onSubmit={handleSubmit} ref={formRef} />
+        <>
+            <Button
+                type={'button'} onClick={() => setOpen(true)}
+                className="flex gap-1 border-dashed border-white text-white bg-none py-1"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
+                    <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clipRule="evenodd" />
+                </svg>
+                <p>Add Tag</p>
+            </Button>
+            <Dialog open={open} onClose={() => setOpen(false)} className="relative z-50">
+                <div className="fixed inset-0 flex w-screen items-center justify-center p-4  backdrop-blur-xl backdrop-brightness-50">
+                    <DialogPanel className="max-w-lg text-black py-10 min-w-xs space-y-4 flex flex-col justify-between bg-white">
+                        <p className={'text-lg px-6'}>New Tag</p>
+                        <PushForm fields={formNodes} onSubmit={handleSubmit}/>
+                    </DialogPanel>
+                </div>
+            </Dialog>
+        </>
     )
 }

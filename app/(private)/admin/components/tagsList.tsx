@@ -3,6 +3,7 @@
 import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
 import {DynamoDBDocumentClient, QueryCommand} from "@aws-sdk/lib-dynamodb";
 import {PushTag} from "@/types";
+import TagEditBtn from "@/app/(private)/admin/components/tagEditBtn";
 
 async function getTags() {
     function docClient(){
@@ -35,12 +36,12 @@ const TagsList=async()=>{
                 <p>no projects found</p>
             }
             { tags!.length > 0 &&
-                <>
+                <div className={'max-w-[80svw] flex-wrap flex gap-3 mb-6'}>
                     { tags!.map((tag,i) => {
-                        return (<p key={i}>{tag.title}</p>)
+                        return (<TagEditBtn tag={tag} key={i} />)
                     })
                     }
-                </>
+                </div>
             }
         </>
     )

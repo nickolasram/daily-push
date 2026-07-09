@@ -18,6 +18,9 @@
   h1 {
     font-size: var(--text-6xl);
   }
+  h2 {
+    font-size: var(--text-4xl);
+  }
   input {
     padding-inline: 6px;
   }

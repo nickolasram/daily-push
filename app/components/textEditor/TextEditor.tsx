@@ -28,7 +28,7 @@ import {
     TabPanel,
     TabPanels
 } from "@headlessui/react";
-import {ChangeEvent, useReducer, useEffect, useRef, useState, useCallback} from "react";
+import {ChangeEvent, useReducer, useEffect, useState} from "react";
 import HardBreak from '@tiptap/extension-hard-break'
 import Link from '@tiptap/extension-link'
 import Youtube from '@tiptap/extension-youtube'

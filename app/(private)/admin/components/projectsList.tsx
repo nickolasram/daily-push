@@ -2,6 +2,7 @@
 import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
 import {DynamoDBDocumentClient, QueryCommand} from "@aws-sdk/lib-dynamodb";
 import {PushProject} from "@/types";
+import ProjectPreview from "@/app/(private)/admin/components/projectPreview";
 
 async function getProjects() {
     function docClient(){
@@ -34,12 +35,14 @@ export default async function ProjectsList() {
                 <p>no projects found</p>
             }
             { projects!.length > 0 &&
-                <>
+                <div className={'max-w-[80svw] flex-wrap flex gap-3 mb-6'}>
                     { projects!.map((project,i) => {
-                        return (<p key={i}>{project.title}</p>)
+                        return (
+                            <ProjectPreview project={project} key={i} />
+                        )
                     })
                     }
-                </>
+                </div>
             }
         </>
     )

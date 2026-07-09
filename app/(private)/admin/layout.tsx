@@ -14,7 +14,7 @@ export default async function RootLayout(
 ) {
     const session = await getSession();
     return (
-        <div>
+        <div className={'min-h-screen flex flex-col'}>
             {children}
             { session.isLoggedIn ? main : login }
         </div>

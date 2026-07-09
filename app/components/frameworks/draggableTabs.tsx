@@ -16,13 +16,13 @@ const DraggableTabs=({icons,labels,addendum}:DraggableTabsProps)=>{
     const padding = 10;
     const [x,y,isDragging,setPosition] = useDraggable(draggableRef,
         {
-            initialValue:{x: 0, y: height/2-elementHeight/2},
+            initialValue:{x: width-elementWidth-12, y: height/2-elementHeight/2},
             preventDefault:true,
             exact:true,
             onEnd:()=>{
                 setPosition(
                     {
-                        x:x/width > 0.5?width-elementWidth:-1,
+                        x:x/width > 0.5?width-elementWidth-12:-1,
                         y:Math.min(Math.max(0,y), height-elementHeight-50),
                     }
                 )
@@ -106,7 +106,7 @@ const DraggableTabs=({icons,labels,addendum}:DraggableTabsProps)=>{
                         height: elementHeight,
                         width: elementWidth,
                         top: y,
-                        right: x/width <= 0.5?width-elementWidth:0,
+                        right: x/width <= 0.5?width-elementWidth-12:0,
                     }}
                 >
                 </div>
