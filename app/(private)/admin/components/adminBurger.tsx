@@ -15,7 +15,7 @@ const AdminBurger=()=>{
             </Button>
             <Dialog open={open} onClose={() => setOpen(false)} className="relative z-50">
                 <div className="fixed inset-0 flex w-screen items-center justify-center p-4  backdrop-blur-xl backdrop-brightness-50">
-                    <DialogPanel className="max-w-lg py-30 min-w-xs space-y-4 h-full flex flex-col justify-between">
+                    <DialogPanel className="max-w-lg py-30 min-w-xs space-y-1 h-full flex flex-col justify-between">
                         <div className="flex justify-end w-full">
                             <Button onClick={()=>setOpen(false)}>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">

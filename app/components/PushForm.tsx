@@ -1,5 +1,5 @@
 'use client'
-import {Fragment, ReactNode, RefObject, SubmitEvent, useReducer, useRef, useState} from "react";
+import {Fragment, ReactNode, RefObject, SubmitEvent, useEffect, useReducer, useRef, useState} from "react";
 import {Field, Input, Label, Textarea, Checkbox, Legend, Fieldset, Radio, RadioGroup, Button} from '@headlessui/react'
 import TextEditor from "@/app/components/textEditor/TextEditor";
 
@@ -65,11 +65,12 @@ const KeyValueField=({name,rounded}:keyValueFieldProps)=>{
 interface TagFormProps{
     name:string,
     possibleTagValues:string[],
+    defaultValues?:string[]
 }
 
-const TagForm = ({name,possibleTagValues}:TagFormProps)=>{
+const TagForm = ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
     const [matchingValues,setMatchingValues]=useState<string[]>([])
-    const [verifiedTags,setVerifiedTags]=useState<string[]>([])
+    const [verifiedTags,setVerifiedTags]=useState<string[]>(defaultValues??[])
     const inputRef = useRef<HTMLInputElement|null>(null)
 
     const handleChange=(input:string)=>{
@@ -88,10 +89,10 @@ const TagForm = ({name,possibleTagValues}:TagFormProps)=>{
                 <input name={name} value={value} readOnly={true} className={'hidden size-0'} />
                 <Button
                     type="button"
-                    className={'bg-cyan-800 border-3 grow-0 w-min h-min px-1 flex gap-1 items-center rounded-lg'}
+                    className={'bg-cyan-800 text-white border-3 grow-0 w-min h-min px-1 flex gap-1 items-center rounded-lg'}
                     onClick={()=>{setVerifiedTags(verifiedTags.filter(tag=>tag!==value))}}
                 >
-                    <p>{value}</p>
+                    <p className={'text-nowrap max-w-[8ch] overflow-x-hidden text-ellipsis'}>{value}</p>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
                         <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z" clipRule="evenodd" />
                     </svg>
@@ -154,6 +155,7 @@ export interface pushFormNode {
     tags?: string[],
     type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags',
     defaultValue?: string | number,
+    defaultTags?: string[],
 //     placeholder
 //     default
 //     onChange
@@ -169,7 +171,7 @@ interface pushFormProps {
 }
 
 const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRoundedDefault,ref}:pushFormProps)=>{
-    // TODO: Right now, can only save the value of one right text field
+    // TODO: Right now, can only save the value of one rich text field
     const [state, dispatch] = useReducer(
         // TODO: fix typing without ignoring
         (
@@ -182,6 +184,12 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
             description:'',
         }
     );
+    useEffect(()=>{
+        const rtfField = fields.find(obj=>(obj.type=='richTextField'))
+        if (rtfField&&rtfField.defaultValue){
+            dispatch({description: rtfField.defaultValue})
+        }
+    },[])
     const setDescription=(description:string)=>{
         dispatch({description: description})
     }
@@ -256,7 +264,7 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                             <div className="md:w-150 max-w-[calc(100vh - 60px)]">
                                 <TextEditor
                                     ikey={state.editorKey as number}
-                                    editorContent={state.defaultDescription as string}
+                                    editorContent={(field.defaultValue as string)??(state.defaultDescription as string)}
                                     onChange={setDescription}
                                     editorBG={'bg-white'}
                                     defaultColor={'text-black'}
@@ -374,13 +382,19 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                                 className={inputClassNameDefault}
                                 name={field.name}
                                 id={field.id}
+                                defaultValue={field.defaultValue??undefined}
                                 type="date"/>
                         </Field>
                     )
                 }
                 else if(field.type == 'tags'){
                     return (
-                        <TagForm key={i} name={field.name} possibleTagValues={field.tags??[]} />
+                        <TagForm
+                            key={i}
+                            name={field.name}
+                            possibleTagValues={field.tags??[]}
+                            defaultValues={field.defaultTags}
+                        />
                     )
                 }
                 else {
