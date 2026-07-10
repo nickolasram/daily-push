@@ -27,8 +27,33 @@ async function getProjects() {
     return response.Items;
 }
 
+async function getTags() {
+    function docClient(){
+        const dbClient = new DynamoDBClient({
+            credentials:{
+                accessKeyId:process.env.NEXT_PUBLIC_ACCESS_KEY as string,
+                secretAccessKey:process.env.NEXT_PUBLIC_SECRET_KEY as string
+            }
+        })
+        return DynamoDBDocumentClient.from(dbClient)
+    }
+
+    const allTags = new QueryCommand({
+        TableName:'daily-push',
+        KeyConditionExpression: 'objectType = :ta',
+        ExpressionAttributeValues: {
+            ':ta': 'tag'
+        }
+    })
+
+    const response = await docClient().send(allTags);
+    return response.Items;
+}
+
 export default async function ProjectsList() {
     const projects = await getProjects() as PushProject[];
+    const tagsRaw = await getTags();
+    const tagsRefined = (tagsRaw as {title:string}[]).map(tag =>tag.title)
     return (
         <>
             { projects!.length == 0 &&
@@ -38,7 +63,7 @@ export default async function ProjectsList() {
                 <div className={'max-w-[80svw] flex-wrap flex gap-3 mb-6'}>
                     { projects!.map((project,i) => {
                         return (
-                            <ProjectPreview project={project} key={i} />
+                            <ProjectPreview project={project} tags={tagsRefined} key={i} />
                         )
                     })
                     }

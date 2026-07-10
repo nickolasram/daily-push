@@ -1,6 +1,6 @@
 import {NextResponse, NextRequest} from "next/server";
 import {DynamoDBClient} from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import {DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand} from "@aws-sdk/lib-dynamodb";
 import {PushProject} from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -19,7 +19,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = body.data as PushProject;
     try {
-
         let newId = uuidv4();
         const objectType = 'project';
         const table = 'daily-push';
@@ -78,6 +77,33 @@ export async function POST(req: NextRequest) {
 //
 // }
 //
-// export async function PATCH(req: NextRequest, res: NextResponse) {
-//
-// }
+export async function PATCH(req: NextRequest) {
+    const body = await req.json();
+    const data = body.data as {key:object, updates:Record<string, string|number|FormDataEntryValue|object|boolean>};
+    const setCommands = [];
+    const eav:Record<string, string|number|FormDataEntryValue|object|boolean> = {}
+    const keys = Object.keys(data.updates);
+    let updateDate = false;
+    for (const key of keys) {
+        if (key == 'date'){
+            updateDate = true;
+        }
+        setCommands.push(`${key=='date'?'#d':key} = :${key}`);
+        eav[`:${key}`] = data.updates[key];
+    }
+    const fullSetCommand = `SET ${setCommands.join(', ')}`
+    try {
+        const command = new UpdateCommand({
+            TableName: 'daily-push',
+            Key: data.key,
+            UpdateExpression: fullSetCommand,
+            ExpressionAttributeValues: eav,
+            ExpressionAttributeNames: updateDate?{'#d':'date'}:undefined
+        });
+        await docClient().send(command);
+        return NextResponse.json({success: true}, {status:200});
+    } catch (error) {
+        console.log(error)
+        return NextResponse.json({error: error}, {status:500});
+    }
+}

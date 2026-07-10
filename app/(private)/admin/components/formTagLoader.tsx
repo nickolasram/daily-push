@@ -3,6 +3,7 @@
 import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
 import {DynamoDBDocumentClient, QueryCommand} from "@aws-sdk/lib-dynamodb";
 import ProjectForm from "@/app/(private)/admin/components/projectForm";
+import {PushProject} from "@/types";
 
 async function getTags() {
     function docClient(){
@@ -30,6 +31,7 @@ async function getTags() {
 export default async function FormTagLoader(){
     const tagsRaw = await getTags();
     const tagsRefined = (tagsRaw as {title:string}[]).map(tag =>tag.title)
+
     return (
         <ProjectForm tags={tagsRefined} />
     )

@@ -52,7 +52,7 @@ const DraggableTabs=({icons,labels,addendum}:DraggableTabsProps)=>{
             <Popover>
                 <TabList>
                     <PopoverPanel
-                        anchor={{ to: 'top start', gap: '13px', offset: -4 }}
+                        anchor={{ to: x/width <= 0.5?'top start':'top end', gap: '13px', offset: x/width <= 0.5?-4:4 }}
                         as={'div'}
                         className={`flex-col transition-all duration-500 items-left border-2 flex border-gray-400 bg-gray-600`}>
                         { !icons && labels &&

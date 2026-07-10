@@ -313,7 +313,7 @@ const TextEditor = ({editorContent, onChange, editorBG, defaultColor, ikey}: Tip
                                     <InsertBar editor={editor}/>
                                 </TabPanel>
                             </TabPanels>
-                            <div className={'max-h-100 overflow-y-scroll'}>
+                            <div className={'max-h-50 overflow-y-scroll max-w-[60vw] min-w-[60vw] md:min-w-auto md:max-w-full'}>
                                 <EditorContent editor={editor}/>
                             </div>
                         </div>
