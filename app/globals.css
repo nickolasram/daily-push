@@ -34,6 +34,25 @@
   }
 }
 
+@layer components {
+  .editBtnFlex{
+    display: flex;
+    max-width: 80svw;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    gap: 12px;
+  }
+  .ghostAddBtn{
+    display: flex;
+    gap: 4px;
+    border-style: dashed;
+    border-color: white;
+    background: none;
+    border-width: 1px;
+    padding-block: 4px;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

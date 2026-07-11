@@ -1,20 +1,10 @@
 'use server'
-import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
-import {DynamoDBDocumentClient, QueryCommand} from "@aws-sdk/lib-dynamodb";
+import {QueryCommand} from "@aws-sdk/lib-dynamodb";
 import {PushProject} from "@/types";
-import ProjectPreview from "@/app/(private)/admin/components/projectPreview";
+import {ProjectEditBtn} from "@/app/(private)/admin/components/editBtns";
+import {getDynamoClient} from "@/globalFunctions/functions";
 
 async function getProjects() {
-    function docClient(){
-        const dbClient = new DynamoDBClient({
-            credentials:{
-                accessKeyId:process.env.NEXT_PUBLIC_ACCESS_KEY as string,
-                secretAccessKey:process.env.NEXT_PUBLIC_SECRET_KEY as string
-            }
-        })
-        return DynamoDBDocumentClient.from(dbClient)
-    }
-
     const allProjects = new QueryCommand({
         TableName:'daily-push',
         KeyConditionExpression: 'objectType = :pr',
@@ -22,22 +12,12 @@ async function getProjects() {
             ':pr': 'project'
         }
     })
-
-    const response = await docClient().send(allProjects);
+    const client = await getDynamoClient()
+    const response = await client.send(allProjects);
     return response.Items;
 }
 
 async function getTags() {
-    function docClient(){
-        const dbClient = new DynamoDBClient({
-            credentials:{
-                accessKeyId:process.env.NEXT_PUBLIC_ACCESS_KEY as string,
-                secretAccessKey:process.env.NEXT_PUBLIC_SECRET_KEY as string
-            }
-        })
-        return DynamoDBDocumentClient.from(dbClient)
-    }
-
     const allTags = new QueryCommand({
         TableName:'daily-push',
         KeyConditionExpression: 'objectType = :ta',
@@ -45,8 +25,8 @@ async function getTags() {
             ':ta': 'tag'
         }
     })
-
-    const response = await docClient().send(allTags);
+    const client = await getDynamoClient()
+    const response = await client.send(allTags);
     return response.Items;
 }
 
@@ -60,10 +40,10 @@ export default async function ProjectsList() {
                 <p>no projects found</p>
             }
             { projects!.length > 0 &&
-                <div className={'max-w-[80svw] flex-wrap flex gap-3 mb-6'}>
+                <div className={'editBtnFlex'}>
                     { projects!.map((project,i) => {
                         return (
-                            <ProjectPreview project={project} tags={tagsRefined} key={i} />
+                            <ProjectEditBtn project={project} key={i} tags={tagsRefined} />
                         )
                     })
                     }

@@ -3,6 +3,7 @@
 import PushForm, {pushFormNode} from "@/app/components/PushForm";
 import {SubmitEvent, useState} from "react";
 import {Button, Dialog, DialogPanel} from "@headlessui/react";
+import {dynamoObject} from "@/types";
 
 const formNodes =(tags:string[]):pushFormNode[]=> ([
         {
@@ -66,7 +67,7 @@ export default function ProjectForm({tags}:ProjectFormProps) {
                 entry[0]!='highlightColor'&&entry[0]!='kvfKey'&&entry[0]!='kvfValue'&&entry[0]!='tags'
             )
         )
-        const dataObject:Record<string,FormDataEntryValue|string[]>={};
+        const dataObject:dynamoObject={};
         for(const entry of entriesNoHL){
             dataObject[entry[0]] = entry[1];
         }

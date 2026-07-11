@@ -1,21 +1,11 @@
 'use server'
 
-import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
-import {DynamoDBDocumentClient, QueryCommand} from "@aws-sdk/lib-dynamodb";
+import {QueryCommand} from "@aws-sdk/lib-dynamodb";
 import {PushTag} from "@/types";
-import TagEditBtn from "@/app/(private)/admin/components/tagEditBtn";
+import {getDynamoClient} from "@/globalFunctions/functions";
+import {TagEditBtn} from "@/app/(private)/admin/components/editBtns";
 
 async function getTags() {
-    function docClient(){
-        const dbClient = new DynamoDBClient({
-            credentials:{
-                accessKeyId:process.env.NEXT_PUBLIC_ACCESS_KEY as string,
-                secretAccessKey:process.env.NEXT_PUBLIC_SECRET_KEY as string
-            }
-        })
-        return DynamoDBDocumentClient.from(dbClient)
-    }
-
     const allTags = new QueryCommand({
         TableName:'daily-push',
         KeyConditionExpression: 'objectType = :ta',
@@ -24,7 +14,8 @@ async function getTags() {
         }
     })
 
-    const response = await docClient().send(allTags);
+    const client = await getDynamoClient()
+    const response = await client.send(allTags);
     return response.Items;
 }
 
@@ -36,9 +27,11 @@ const TagsList=async()=>{
                 <p>no projects found</p>
             }
             { tags!.length > 0 &&
-                <div className={'max-w-[80svw] flex-wrap flex gap-3 mb-6'}>
+                <div className={'editBtnFlex'}>
                     { tags!.map((tag,i) => {
-                        return (<TagEditBtn tag={tag} key={i} />)
+                        return (
+                            <TagEditBtn tag={tag} key={i} />
+                        )
                     })
                     }
                 </div>
