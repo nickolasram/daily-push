@@ -14,3 +14,5 @@ export interface PushTag{
     objectId: string,
     title: string,
 }
+
+export type dynamoObject = Record<string,string|number|FormDataEntryValue|object|boolean|string[]>;
