@@ -20,3 +20,5 @@ const GhostAddBtn=({children,open,setOpen}:GhostAddBtnProps)=>{
         </Button>
     )
 }
+
+export default GhostAddBtn;
