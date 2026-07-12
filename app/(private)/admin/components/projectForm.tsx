@@ -5,7 +5,7 @@ import {SubmitEvent, useState} from "react";
 import {Button, Dialog, DialogPanel} from "@headlessui/react";
 import {dynamoObject} from "@/types";
 
-const formNodes =(tags:string[]):pushFormNode[]=> ([
+const formNodes =(tags:{display:string,value:string}[]):pushFormNode[]=> ([
         {
             name: 'title',
             type: 'text',
@@ -50,13 +50,12 @@ const formNodes =(tags:string[]):pushFormNode[]=> ([
 )
 
 interface ProjectFormProps{
-    tags:string[]
+    tags:{display:string,value:string}[]
 }
 
 export default function ProjectForm({tags}:ProjectFormProps) {
     const [open, setOpen] = useState(false);
     const fields = formNodes(tags);
-
     const handleSubmit = async (event:SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.target);

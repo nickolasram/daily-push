@@ -33,7 +33,7 @@ async function getTags() {
 export default async function ProjectsList() {
     const projects = await getProjects() as PushProject[];
     const tagsRaw = await getTags();
-    const tagsRefined = (tagsRaw as {title:string}[]).map(tag =>tag.title)
+    const tagsRefined = (tagsRaw as {title:string,objectId:string}[]).map(tag =>({value:tag.objectId,display:tag.title}))
     return (
         <>
             { projects!.length == 0 &&
