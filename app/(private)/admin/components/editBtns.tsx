@@ -47,7 +47,7 @@ export function TagEditBtn ({tag}:{tag:PushTag}){
     )
 }
 
-export function ProjectEditBtn({project,tags}: {project:PushProject,tags:string[]}) {
+export function ProjectEditBtn({project,tags}: {project:PushProject,tags:{display:string,value:string}[]}) {
     const [open, setOpen] = useState(false);
     const formFields:pushFormNode[] =[
         {
@@ -139,13 +139,14 @@ export function ProjectEditBtn({project,tags}: {project:PushProject,tags:string[
             }
         })
     }
+    const tagDisplays = (project.tags??[]).map((tag)=>(tags.find(obj=>obj.value==tag)!.display))
     return(
         <FormDialogBtn formFields={formFields} handleSubmit={handleSubmit} dialogTitle={project.title} open={open} setOpen={setOpen}>
             <div className={'aspect-square size-45 flex flex-col justify-between'}>
                 <p className={'text-left text-lg line-clamp-3 font-bold'}>{project.title}</p>
                 <div className={'max-w-full'}>
                     <p className={'text-left'}>{project.date}</p>
-                    <p className={'overflow-x-hidden text-nowrap whitespace-nowrap text-ellipsis max-w-full'}>{project.tags.join(', ')}</p>
+                    <p className={'overflow-x-hidden text-left text-nowrap whitespace-nowrap text-ellipsis max-w-full'}>{project.tags?tagDisplays.join(', '):'[no tags]'}</p>
                 </div>
             </div>
         </FormDialogBtn>
