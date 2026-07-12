@@ -6,6 +6,7 @@ import TagForm from "@/app/(private)/admin/components/tagForm";
 import TagsList from "@/app/(private)/admin/components/tagsList";
 import FormTagLoader from "@/app/(private)/admin/components/formTagLoader";
 import ThinTabsFramework, {TTFChild} from "@/app/components/frameworks/thinTabsFramework";
+import IdeasWrapper from "@/app/(private)/admin/components/ideasWrapper";
 
 
 const Page=()=>{
@@ -31,9 +32,13 @@ const Page=()=>{
             </TTFChild>
             <TTFChild>
                 <h2 className={'mb-6'}>Demos</h2>
+                <p>coming soon</p>
             </TTFChild>
             <TTFChild>
                 <h2 className={'mb-6'}>Ideas</h2>
+                <Suspense fallback={<p>Loading...</p>}>
+                    <IdeasWrapper />
+                </Suspense>
             </TTFChild>
         </ThinTabsFramework>
     )
