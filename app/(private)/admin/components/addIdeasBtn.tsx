@@ -4,6 +4,7 @@ import BtnPopup from "@/app/components/btnPopup";
 import GhostAddBtn from "@/app/(private)/admin/components/ghostAddBtn";
 import PopupForm from "@/app/components/popupForm";
 import {pushFormNode} from "@/app/components/PushForm";
+import {PushDynamoIdea} from "@/models";
 
 const formFields:pushFormNode[]=[
     {
@@ -16,14 +17,12 @@ const formFields:pushFormNode[]=[
 export default function AddIdeasBtn(){
     const [open, setOpen] = useState(false);
     const handleSubmit = async(e:SubmitEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const data = new FormData(e.target);
-        const idea = data.get("idea");
+        const idea = PushDynamoIdea.formattedFormValues(e) as string;
         await fetch('/api/ideas', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                data: {idea:idea}
+                data: idea
             }),
         }).then(async res => {
             if (res.ok) {

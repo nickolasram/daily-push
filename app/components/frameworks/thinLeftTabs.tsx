@@ -19,12 +19,14 @@ export default function ThinLeftTabs({tabs,tabListAddendum,icons}:ThinLeftTabsPr
                     className={'flex flex-col justify-between pt-4 border-r-2 border-gray-400 bg-gray-600 px-1'}
                 >
                     <TabList
+                        as={'div'}
                         className={'flex flex-col'}
                     >
                         { tabs.map((tab,i)=>{
                             return (
                                 <Tab
                                     key={i}
+                                    as={'div'}
                                     className={' border-x-0 border-t-0 cursor-pointer text-gray-300 w-full text-left ' +
                                         'border-b-2 last-of-type:border-b-0 border-b-gray-400 py-2'}
                                 >

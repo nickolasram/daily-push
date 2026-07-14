@@ -4,6 +4,7 @@ import PushForm, {pushFormNode} from "@/app/components/PushForm";
 import {SubmitEvent, useState} from "react";
 import {Dialog, DialogPanel, Button} from "@headlessui/react";
 import {dynamoObject} from "@/types";
+import {PushDynamoTag} from "@/models";
 
 const formNodes:pushFormNode[]=[
     {
@@ -17,23 +18,12 @@ const formNodes:pushFormNode[]=[
 export default function TagForm(){
     const [open, setOpen] = useState(false);
     const handleSubmit = async (event:SubmitEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const data = new FormData(event.target);
-        const entries:[string,FormDataEntryValue][] =[...data.entries()]
-        const entriesNoHL:[string, FormDataEntryValue][] = entries.filter(
-            (entry)=>(
-                entry[0]=='title'
-            )
-        )
-        const dataObject:dynamoObject={};
-        for(const entry of entriesNoHL){
-            dataObject[entry[0]] = entry[1];
-        }
+        const title = PushDynamoTag.formattedFormValues(event);
         await fetch('/api/tags', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                data:dataObject
+                data:title
             }),
         }).then(async res => {
             if (res.ok) {

@@ -3,8 +3,6 @@
 import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
 import {DynamoDBDocumentClient, QueryCommand} from "@aws-sdk/lib-dynamodb";
 import ProjectForm from "@/app/(private)/admin/components/projectForm";
-import {PushProject} from "@/types";
-import {tag} from "@smithy/core/cbor";
 
 async function getTags() {
     function docClient(){
