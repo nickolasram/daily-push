@@ -17,7 +17,7 @@ export function TagEditBtn ({tag}:{tag:PushTag}){
     }]
 
     const updateTag = async (event:SubmitEvent<HTMLFormElement>) => {
-        const title = PushDynamoTag.formattedFormValues(event.target.value);
+        const title = PushDynamoTag.formattedFormValues(event);
         await fetch('/api/tags', {
             method: 'PATCH',
             headers: {'Content-Type': 'application/json'},
