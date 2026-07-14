@@ -15,4 +15,10 @@ export interface PushTag{
     title: string,
 }
 
+export interface PushIdea {
+    objectType: 'idea',
+    objectId: string,
+    idea: string,
+}
+
 export type dynamoObject = Record<string,string|number|FormDataEntryValue|object|boolean|string[]>;

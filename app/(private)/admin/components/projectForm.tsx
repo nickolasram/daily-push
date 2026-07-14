@@ -4,6 +4,7 @@ import PushForm, {pushFormNode} from "@/app/components/PushForm";
 import {SubmitEvent, useState} from "react";
 import {Button, Dialog, DialogPanel} from "@headlessui/react";
 import {dynamoObject} from "@/types";
+import {PushDynamoProject} from "@/models";
 
 const formNodes =(tags:{display:string,value:string}[]):pushFormNode[]=> ([
         {
@@ -57,20 +58,7 @@ export default function ProjectForm({tags}:ProjectFormProps) {
     const [open, setOpen] = useState(false);
     const fields = formNodes(tags);
     const handleSubmit = async (event:SubmitEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const data = new FormData(event.target);
-        const entries:[string,FormDataEntryValue][] =[...data.entries()]
-        const tags= data.getAll('tags') as string[]
-        const entriesNoHL:[string, FormDataEntryValue][] = entries.filter(
-            (entry)=>(
-                entry[0]!='highlightColor'&&entry[0]!='kvfKey'&&entry[0]!='kvfValue'&&entry[0]!='tags'
-            )
-        )
-        const dataObject:dynamoObject={};
-        for(const entry of entriesNoHL){
-            dataObject[entry[0]] = entry[1];
-        }
-        dataObject.tags = tags;
+        const dataObject = PushDynamoProject.formattedFormValues(event)
         await fetch('/api/projects', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},

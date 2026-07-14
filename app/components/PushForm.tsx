@@ -144,7 +144,7 @@ const TagForm = ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
 // TODO: allow default options
 export interface pushFormNode {
     defaultCheckedIndex?:number,
-    id: string,
+    id?: string,
     inputRounded?: 'rounded-none' | 'rounded-xs' | 'rounded-sm' | 'rounded-md' | 'rounded-lg' | 'rounded-xl' | string,
     label?: string,
     labelPlacement?: 'column' | 'row',
