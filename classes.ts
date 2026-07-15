@@ -2,7 +2,8 @@ import {
     DynamoDBDocumentClient,
     GetCommand,
     UpdateCommand,
-    UpdateCommandOutput
+    UpdateCommandOutput,
+    DeleteCommand
 } from "@aws-sdk/lib-dynamodb";
 import {dynamoObject} from "@/types";
 
@@ -50,5 +51,13 @@ export abstract class PushDynamoClass {
         return client.send(updateCommand);
     }
 
-    // protected dynamoDelete(){}
+    protected static dynamoDelete(client:DynamoDBDocumentClient,
+                           table:string,
+                           key:dynamoObject){
+        const deleteCommand = new DeleteCommand({
+            TableName: table,
+            Key: key
+        })
+        return client.send(deleteCommand);
+    }
 }

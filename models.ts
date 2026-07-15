@@ -217,6 +217,17 @@ export class PushDynamoProject extends PushDynamoClass{
         })
         return client.send(putCommand);
     }
+
+    public static delete(client:DynamoDBDocumentClient,objectId:string){
+        return super.dynamoDelete(
+            client,
+            'daily-push',
+            {
+                objectType: 'project',
+                objectId:objectId
+            }
+        )
+    }
 }
 
 export class PushDynamoTag extends PushDynamoClass{
@@ -247,7 +258,6 @@ export class PushDynamoTag extends PushDynamoClass{
             throw new Error('title is required');
         }
         return title;
-
     }
 
     public static get(client:DynamoDBDocumentClient,objectId:string){
@@ -273,6 +283,17 @@ export class PushDynamoTag extends PushDynamoClass{
         })
 
         return client.send(putCommand);
+    }
+
+    public static delete(client:DynamoDBDocumentClient,objectId:string){
+        return super.dynamoDelete(
+                client,
+                'daily-push',
+                {
+                    objectType: 'tag',
+                    objectId:objectId
+                }
+            )
     }
 
     public static patch(client:DynamoDBDocumentClient,
@@ -372,6 +393,17 @@ export class PushDynamoIdea extends PushDynamoClass{
                 objectId:objectId,
             },
             {idea:idea}
+        )
+    }
+
+    public static delete(client:DynamoDBDocumentClient,objectId:string){
+        return super.dynamoDelete(
+            client,
+            'daily-push',
+            {
+                objectType: 'idea',
+                objectId:objectId
+            }
         )
     }
 }

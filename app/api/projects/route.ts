@@ -14,6 +14,17 @@ export async function POST(req: NextRequest) {
     }
 }
 
+export async function DELETE(req: NextRequest) {
+    const body = await req.json();
+    const data = body.data as string;
+    try {
+        await PushDynamoProject.delete(await getDynamoClient(), data);
+        return NextResponse.json({success: true}, {status:200});
+    } catch (error) {
+        return NextResponse.json({error: error}, {status:500});
+    }
+}
+
 export async function PATCH(req: NextRequest) {
     const body = await req.json();
     const data = body.data as {objectId:string, detectedChanges:dynamoObject};

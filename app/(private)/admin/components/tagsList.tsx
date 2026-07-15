@@ -27,7 +27,7 @@ const TagsList=async()=>{
                 <p>no projects found</p>
             }
             { tags!.length > 0 &&
-                <div className={'editBtnFlex'}>
+                <div className={'editBtnFlexContainer'}>
                     { tags!.map((tag,i) => {
                         return (
                             <TagEditBtn tag={tag} key={i} />

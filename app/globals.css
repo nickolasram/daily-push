@@ -35,12 +35,17 @@
 }
 
 @layer components {
-  .editBtnFlex{
+  .editBtnFlexContainer{
     display: flex;
     max-width: 80svw;
     flex-wrap: wrap;
     margin-bottom: 24px;
     gap: 12px;
+  }
+  .marbleBtn {
+    background-color: #f3f4f6;
+    color: #4a5565;
+    border: 1px solid #4a5565;
   }
   .ghostAddBtn{
     display: flex;
@@ -50,6 +55,9 @@
     background: none;
     border-width: 1px;
     padding-block: 4px;
+  }
+  .deletionCheckInput::placeholder{
+    font-style: italic;
   }
 }
 
