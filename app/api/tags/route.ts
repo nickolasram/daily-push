@@ -21,10 +21,18 @@ export async function POST(req: NextRequest) {
 //
 // }
 //
-// export async function DELETE(req: NextRequest, res: NextResponse) {
-//
-// }
-//
+
+export async function DELETE(req: NextRequest) {
+    const body = await req.json();
+    const data = body.data as string;
+    try {
+        await PushDynamoTag.delete(await getDynamoClient(), data);
+        return NextResponse.json({success: true}, {status:200});
+    } catch (error) {
+        return NextResponse.json({error: error}, {status:500});
+    }
+}
+
 export async function PATCH(req: NextRequest) {
     const body = await req.json();
     const data = body.data as {title:string,objectId:string};

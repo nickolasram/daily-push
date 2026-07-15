@@ -28,7 +28,7 @@ export default async function ProjectsList() {
                 <p>no projects found</p>
             }
             { projects!.length > 0 &&
-                <div className={'editBtnFlex'}>
+                <div className={'editBtnFlexContainer'}>
                     { projects!.map((project,i) => {
                         return (
                             <ProjectEditBtn project={project.plainObject()} nodes={project.formNodes} key={i} tags={tagsRefined} />
