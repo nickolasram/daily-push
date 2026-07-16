@@ -37,7 +37,6 @@ const DraggableTabs=({icons,labels,addendum}:DraggableTabsProps)=>{
                 cursor: "move",
                 zIndex: 10,
                 touchAction: "none",
-                border: "solid 2px #99a1af",
                 left: x,
                 top: y,
                 width: 44,
@@ -47,14 +46,14 @@ const DraggableTabs=({icons,labels,addendum}:DraggableTabsProps)=>{
                 alignItems:"center",
                 pointerEvents:'all'
             }}
-            className={'bg-gray-600'}
+            className={'tertiaryUI'}
         >
             <Popover>
                 <TabList>
                     <PopoverPanel
                         anchor={{ to: x/width <= 0.5?'top start':'top end', gap: '13px', offset: x/width <= 0.5?-4:4 }}
                         as={'div'}
-                        className={`flex-col transition-all duration-500 items-left border-2 flex border-gray-400 bg-gray-600`}>
+                        className={`flex-col items-left tertiaryUI flex`}>
                         { !icons && labels &&
                             <>
                                 { labels.map((label,i)=>{
@@ -81,7 +80,7 @@ const DraggableTabs=({icons,labels,addendum}:DraggableTabsProps)=>{
                 </TabList>
                 <div
                     style={{paddingInline:padding}}
-                    className={'cursor-pointer pb-2 pt-3 border-b-2 border-gray-400'}>
+                    className={'cursor-pointer pb-2 pt-3 border-b-2 border-white'}>
                     <PopoverButton as={'button'} className={'border-0'}>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
                             <path fillRule="evenodd" d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75ZM3 12a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z" clipRule="evenodd" />
