@@ -26,7 +26,7 @@ interface BurgerNavProps {
 }
 function BurgerNav({children,Logo,Burger}:BurgerNavProps){
     return (
-        <div className={'bg-gray-950 border-b-2 border-gray-400 px-5 min-h-15 flex items-center justify-between'}>
+        <div className={'secondaryUI px-5 min-h-15 flex items-center justify-between'}>
             {Logo}
             {children}
             {Burger}
