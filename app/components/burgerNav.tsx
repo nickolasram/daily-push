@@ -23,10 +23,11 @@ interface BurgerNavProps {
     children?: ReactNode;
     Logo?:ReactNode;
     Burger?:ReactNode;
+    className?:string;
 }
-function BurgerNav({children,Logo,Burger}:BurgerNavProps){
+function BurgerNav({children,Logo,Burger,className}:BurgerNavProps){
     return (
-        <div className={'secondaryUI px-5 min-h-15 flex items-center justify-between'}>
+        <div className={'secondaryUI px-5 min-h-15 flex items-center justify-between burgerNav '+(className??'')}>
             {Logo}
             {children}
             {Burger}
