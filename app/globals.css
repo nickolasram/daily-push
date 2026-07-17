@@ -14,8 +14,9 @@
 @theme {
   --color-foreground: #ffffff;
   --color-background: #242525;
-  --color-marble: var(--color-cyan-800);
+  --color-marble: var(--color-cyan-700);
   --color-inner-neon: rgba(255, 255, 255, 0.5);
+  --color-off-neon: rgba(255, 255, 255, 0);
   --color-outer-neon: rgba(255, 255, 255, 0.75);
   --1-space-gap: 4px;
 }
@@ -112,7 +113,7 @@
   }
   .secondaryUI{
     /*background-color: var(--color-gray-600);*/
-    background-color: var(--color-cyan-900);
+    background-color: var(--color-cyan-700);
     color: var(--color-foreground);
   }
   .tertiaryUI{
@@ -120,11 +121,66 @@
     background-color: var(--color-gray-700 );
     color: var(--color-foreground);
   }
+
+  .burgerNav{
+    position: relative;
+    border-bottom: var(--color-cyan-900) solid 4px ;
+  }
+  .burgerNav::after{
+    content: "";
+    position: absolute;
+    /*width: 35px;*/
+    width: 100%;
+    z-index: 5;
+    bottom: -4px;
+    height: 4px;
+    left: 0;
+    background: #10786d;
+    background: linear-gradient(13deg,rgba(0, 117, 149, 1) 27%, rgba(94, 171, 171, 1) 50%, rgba(16, 120, 109, 1) 64%);
+    /*animation: pongBorder;*/
+    /*animation-duration: 10s;*/
+    /*animation-timing-function: ease-in;*/
+    /*animation-iteration-count: infinite;*/
+    /*transform: skewX(50deg);*/
+  }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+  }
+}
+
+
+@keyframes pongBorder {
+  0%{
+    background-color: var(--color-cyan-900);
+    left: -25%;
+    box-shadow: 0 0 0 var(--color-off-neon), inset 0 0 0 var(--color-off-neon);
+    opacity: 0;
+  }
+  25%{
+    opacity: 1;
+  }
+  50%{
+    background-color: var(--color-cyan-800);
+    box-shadow: 0 0 1px var(--color-inner-neon), inset 0 0 1px var(--color-outer-neon);
+  }
+  75%{
+    background-color: var(--color-cyan-600);
+    box-shadow: 0 0 3px var(--color-inner-neon), inset 0 0 3px var(--color-outer-neon);
+  }
+  90%{
+    background-color: var(--color-cyan-400);
+  }
+  95%{
+    background-color: var(--color-cyan-100);
+    box-shadow: 0 0 1px var(--color-inner-neon), inset 0 0 1px var(--color-outer-neon);
+  }
+  100%{
+    background-color: var(--color-cyan-900);
+    left: 90%;
+    box-shadow: 0 0 1px var(--color-off-neon), inset 0 0 1px var(--color-off-neon);
   }
 }
