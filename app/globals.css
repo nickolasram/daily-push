@@ -136,7 +136,7 @@
     height: 4px;
     left: 0;
     background: #10786d;
-    background: linear-gradient(13deg,rgba(0, 117, 149, 1) 27%, rgba(94, 171, 171, 1) 50%, rgba(16, 120, 109, 1) 64%);
+    background: linear-gradient(13deg,var(--color-marble) 25%, rgba(94, 171, 171, 1) 50%, var(--color-marble) 75%);
     /*animation: pongBorder;*/
     /*animation-duration: 10s;*/
     /*animation-timing-function: ease-in;*/
