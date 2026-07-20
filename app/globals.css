@@ -70,7 +70,33 @@
     border: none;
   }
   .neonBorder {
-    box-shadow: 0 0 3px var(--color-inner-neon), inset 0 0 3px var(--color-outer-neon);
+    /*box-shadow: 0 0 3px var(--color-inner-neon), inset 0 0 3px var(--color-outer-neon);*/
+    position: relative;
+    margin: 6px;
+  }
+  .neonBorder::before {
+    content: "";
+    z-index: -1;
+    position: absolute;
+    width: calc(100% + 12px);
+    height: calc(100% + 12px);
+    left: -6px;
+    background: #00759588;
+    /*background: #007595;*/
+    /*background: radial-gradient(circle, rgba(0, 117, 149, 1) 27%, rgba(94, 171, 171, 1) 63%, rgba(0, 117, 149, 0.63) 100%);*/
+    top: -6px;
+  }
+  .neonBorder:nth-child(1n)::before {
+    background: linear-gradient(13deg,rgba(0, 117, 149, 0.25) 27%, rgba(94, 171, 171, 1) 50%, rgba(0, 117, 149, 0.25) 64%);
+  }
+  .neonBorder:nth-child(2n)::before {
+    background: linear-gradient(31deg,rgba(0, 117, 149, 0.25) 27%, rgba(94, 171, 171, 1) 50%, rgba(0, 117, 149, 0.25) 64%);
+  }
+  .neonBorder:nth-child(3n)::before {
+    background: linear-gradient(25deg,rgba(0, 117, 149, 0.25) 27%, rgba(94, 171, 171, 1) 50%, rgba(0, 117, 149, 0.25) 64%);
+  }
+  .neonBorder:nth-child(4n)::before {
+    background: linear-gradient(64deg,rgba(0, 117, 149, 0.25) 27%, rgba(94, 171, 171, 1) 50%, rgba(0, 117, 149, 0.25) 64%);
   }
   .ghostAddBtn{
     display: flex;
