@@ -14,19 +14,42 @@ interface FormDialogBtnProps{
     setOpen:Dispatch<SetStateAction<boolean>>;
     handleDelete?:()=>void;
     rounded?:'rounded-xs'|'rounded-sm'|'rounded-md'|'rounded-lg'|'rounded-xl'|string,
-    btnStyle?:string;
+    btnStyle?:'neon'|'marbleBtn'|string;
 }
 
 const FormDialogBtn = ({btnStyle,children,rounded,formFields,handleSubmit,dialogTitle,open,setOpen,handleDelete}:FormDialogBtnProps) => {
     const [inputValue, setInputValue] = useState('');
+    const [angle] = useState(()=>(Math.floor(Math.random()*360)));
+    const [delay] = useState(()=>(Math.floor(Math.random()*10000)));
+    const genBorderStyle=btnStyle=='neonBtn'?
+        {
+            display:'none'
+        }
+        :
+        {
+            background:`linear-gradient(${angle}deg,rgba(0, 117, 149, 0.25) 27%, rgba(94, 171, 171, 1) 50%, rgba(0, 117, 149, 0.25) 64%)`,
+            animationDelay:`${delay}ms`,
+        };
     return (
         <>
-            <Button
-                className={btnStyle??'marbleBtn neonBorder'}
-                onClick={()=>setOpen(!open)}
+            <div
+                className={`w-fit h-fit grid grid-rows-1 grid-cols-1 overflow-hidden`}
             >
-                {children}
-            </Button>
+                <div
+                    className={`col-start-1 col-end-2 row-start-1 row-end-2 ${btnStyle=='neon'?'neonBorder':''}`}
+                >
+                    <div className={'w-full h-full'}
+                         style={genBorderStyle}>
+
+                    </div>
+                </div>
+                <Button
+                    className={btnStyle??''}
+                    onClick={()=>setOpen(!open)}
+                >
+                    {children}
+                </Button>
+            </div>
             <PushDialog open={open} setOpen={setOpen} title={dialogTitle}>
                 <div className={'max-h-[70vh] overflow-y-scroll flex flex-col gap-6'}>
                     <PushForm fields={formFields} onSubmit={handleSubmit} />
