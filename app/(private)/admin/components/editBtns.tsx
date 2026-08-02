@@ -197,6 +197,7 @@ export function ProjectEditBtn({project,nodes,tags}: {project:PushProject,nodes:
             setOpen={setOpen}
             handleDelete={deleteProject}
             btnStyle={'neon'}
+            rounded={'rounded-md'}
         >
             <div className={'aspect-square size-45 flex flex-col justify-between'}>
                 <p className={'text-left text-lg line-clamp-3 font-bold'}>{project.title}</p>
