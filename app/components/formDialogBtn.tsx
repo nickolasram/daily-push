@@ -20,14 +20,14 @@ interface FormDialogBtnProps{
 const FormDialogBtn = ({btnStyle,children,rounded,formFields,handleSubmit,dialogTitle,open,setOpen,handleDelete}:FormDialogBtnProps) => {
     const [inputValue, setInputValue] = useState('');
     const [angle] = useState(()=>(Math.floor(Math.random()*360)));
-    const [delay] = useState(()=>(Math.floor(Math.random()*10000)));
+    const [delay] = useState(()=>(Math.floor(Math.random()*30000)));
     const genBorderStyle=btnStyle=='neonBtn'?
         {
             display:'none'
         }
         :
         {
-            background:`linear-gradient(${angle}deg,rgba(0, 117, 149, 0.25) 27%, rgba(94, 171, 171, 1) 50%, rgba(0, 117, 149, 0.25) 64%)`,
+            background:`linear-gradient(${angle}deg,hsla(207, 54%, 46%, 0) 10%,hsla(207, 54%, 46%, 1) 10%, hsla(207, 54%, 46%, 1) 25%, hsla(207, 54%, 46%, 1) 75%, hsla(207, 54%, 46%, 1) 90%, hsla(207, 54%, 46%, 0) 90%)`,
             animationDelay:`${delay}ms`,
         };
     return (
@@ -38,13 +38,13 @@ const FormDialogBtn = ({btnStyle,children,rounded,formFields,handleSubmit,dialog
                 <div
                     className={`col-start-1 col-end-2 row-start-1 row-end-2 ${btnStyle=='neon'?'neonBorder':''}`}
                 >
-                    <div className={'w-full h-full'}
+                    <div className={`w-full h-full ${rounded??''}`}
                          style={genBorderStyle}>
 
                     </div>
                 </div>
                 <Button
-                    className={btnStyle??''}
+                    className={`${btnStyle??''} ${rounded??''}`}
                     onClick={()=>setOpen(!open)}
                 >
                     {children}

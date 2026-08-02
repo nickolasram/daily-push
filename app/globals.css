@@ -15,7 +15,8 @@
   --color-foreground: #ffffff;
   --color-background: #242525;
   --color-marble: #E6E4D8;
-  --color-neon-cyan: var(--color-cyan-700);
+  /*--color-neon-cyan: var(--color-cyan-700);*/
+  --color-neon-cyan: hsl(207, 54%, 46%);
   --color-inner-neon: rgba(255, 255, 255, 0.5);
   --color-off-neon: rgba(255, 255, 255, 0);
   --color-outer-neon: rgba(255, 255, 255, 0.75);
@@ -76,25 +77,27 @@
     grid-column: 1 / -1;
     margin: 6px;
     border: none;
-    background-color: #007595bb;
+    background-color: hsl(207, 54%, 46%);
   }
   .neonBorder{
-    clip-path: shape(
-      evenodd
-      from 0 0,
-      hline by 100%,
-      vline by 100%,
-      hline to 0,
-      close,
-      move to 6px 6px,
-      hline by calc(100% - 12px),
-      vline by calc(100% - 12px),
-      hline to 6px,
-      close
-    );
+    z-index: -1;
+    /*clip-path: shape(*/
+    /*  evenodd*/
+    /*  from 0 0,*/
+    /*  hline by 100%,*/
+    /*  vline by 100%,*/
+    /*  hline to 0,*/
+    /*  close,*/
+    /*  move to 6px 6px,*/
+    /*  hline by calc(100% - 12px),*/
+    /*  vline by calc(100% - 12px),*/
+    /*  hline to 6px,*/
+    /*  close*/
+    /*);*/
   }
   .neonBorder>div{
-    animation: neonBorderAnimation 30s infinite;
+    /*animation: neonBorderAnimation 30s infinite;*/
+    display: block;
   }
   .ghostAddBtn{
     display: flex;
@@ -137,18 +140,19 @@
   }
   .secondaryUI{
     /*background-color: var(--color-gray-600);*/
-    background-color: var(--color-cyan-700);
+    background-color: var(--color-neon-cyan);
     color: var(--color-foreground);
   }
   .tertiaryUI{
     /*background-color: var(--color-gray-600);*/
-    background-color: var(--color-gray-700 );
+    background-color: hsl(206, 100%, 6%);
+    border-right: 2px solid var(--color-foreground);
     color: var(--color-foreground);
   }
 
   .burgerNav{
     position: relative;
-    border-bottom: var(--color-cyan-900) solid 4px ;
+    border-bottom: hsl(207, 54%, 46%) solid 4px ;
   }
   .burgerNav::after{
     content: "";
@@ -160,7 +164,7 @@
     height: 4px;
     left: 0;
     background: #10786d;
-    background: linear-gradient(13deg,var(--color-neon-cyan) 25%, rgba(94, 171, 171, 1) 50%, var(--color-neon-cyan) 75%);
+    background: linear-gradient(13deg,var(--color-neon-cyan) 25%, hsl(207, 54%, 59%) 50%, var(--color-neon-cyan) 75%);
   }
 }
 
@@ -173,19 +177,19 @@
 
 @keyframes neonBorderAnimation {
   0%{
-    filter: brightness(80%);
+    filter: brightness(100%);
     transform: rotate(0);
   }
   15%{
-    filter: brightness(120%);
+    filter: brightness(150%);
     transform: rotate(360deg);
   }
   30%{
-    filter: brightness(80%);
-    transform: rotate(0);
+    filter: brightness(100%);
+    transform: rotate(360deg);
   }
   100%{
-    filter: brightness(80%);
-    transform: rotate(0);
+    filter: brightness(100%);
+    transform: rotate(360deg);
   }
 }
