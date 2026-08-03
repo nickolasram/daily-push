@@ -1,8 +1,10 @@
 "use server";
 
+import SimpleVertical from "@/app/components/frameworks/simpleVertical";
+
 export default async function Home() {
   return (
-      <div>
+      <SimpleVertical>
         <h1>Daily-Push!</h1>
           <p>
               Thank you for visiting daily-push.com! I am an aspiring web developer who graduated recently with a degree in web application development.
@@ -14,6 +16,6 @@ export default async function Home() {
               new update to github <b>daily</b> containing ready-to-publish content usually as self-contained pages or modules I use as an excuse to explore design ideas,
               review concepts, and build prototypes that will be incorporated into larger projects.
           </p>
-      </div>
+      </SimpleVertical>
   )
 }
