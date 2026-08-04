@@ -5,6 +5,7 @@ import {pushFormNode} from "@/app/components/PushForm";
 import {SubmitEvent, useState} from "react";
 import FormDialogBtn from "@/app/components/formDialogBtn";
 import {PushDynamoIdea, PushDynamoProject, PushDynamoTag} from "@/models";
+import ProjectSquare from "@/app/components/projectSquare";
 
 export function IdeaEditBtn({idea}:{idea:PushIdea}){
     const [open, setOpen] = useState(false);
@@ -186,8 +187,6 @@ export function ProjectEditBtn({project,nodes,tags}: {project:PushProject,nodes:
         })
     }
 
-    const tagDisplays = (project.tags??[]).map((tag)=>(tags.find(obj=>obj.value==tag)!.display))
-
     return(
         <FormDialogBtn
             formFields={formNodes}
@@ -199,13 +198,7 @@ export function ProjectEditBtn({project,nodes,tags}: {project:PushProject,nodes:
             btnStyle={'neon'}
             rounded={'rounded-md'}
         >
-            <div className={'aspect-square size-45 flex flex-col justify-between'}>
-                <p className={'text-left text-lg line-clamp-3 font-bold'}>{project.title}</p>
-                <div className={'max-w-full'}>
-                    <p className={'text-left'}>{project.date}</p>
-                    <p className={'overflow-x-hidden text-left text-nowrap whitespace-nowrap text-ellipsis max-w-full'}>{project.tags.length>0?tagDisplays.join(', '):'[no tags]'}</p>
-                </div>
-            </div>
+            <ProjectSquare project={project} tags={tags} />
         </FormDialogBtn>
     )
 }
