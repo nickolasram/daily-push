@@ -1,8 +1,29 @@
 "use server";
 
 import SimpleVertical from "@/app/components/frameworks/simpleVertical";
+import PushMenuBtn from "@/app/components/pushMenuBtn";
+import {PushDynamoProject} from "@/models";
+import {QueryCommand} from "@aws-sdk/lib-dynamodb";
+import {getDynamoClient} from "@/globalFunctions/functions";
+import ProjectSquare from "@/app/components/projectSquare";
+
+async function getTags() {
+    const allTags = new QueryCommand({
+        TableName:'daily-push',
+        KeyConditionExpression: 'objectType = :ta',
+        ExpressionAttributeValues: {
+            ':ta': 'tag'
+        }
+    })
+    const client = await getDynamoClient()
+    const response = await client.send(allTags);
+    return response.Items;
+}
 
 export default async function Home() {
+    const projects = await PushDynamoProject.getAllProjects()
+    const tagsRaw = await getTags();
+    const tagsRefined = (tagsRaw as {title:string,objectId:string}[]).map(tag =>({value:tag.objectId,display:tag.title}))
   return (
       <SimpleVertical>
         <h1>Daily-Push!</h1>
@@ -16,6 +37,30 @@ export default async function Home() {
               new update to github <b>daily</b> containing ready-to-publish content usually as self-contained pages or modules I use as an excuse to explore design ideas,
               review concepts, and build prototypes that will be incorporated into larger projects.
           </p>
+          { projects!.length == 0 &&
+              <p>no projects found</p>
+          }
+          { projects!.length > 0 &&
+              <div className={'editBtnFlexContainer'}>
+                  { projects!.map((project,i) => {
+                      return (
+                          <PushMenuBtn
+                              btnStyle={'neon'}
+                              rounded={'rounded-md'}
+                              key={i}>
+                              <ProjectSquare project={project.plainObject()} tags={tagsRefined} />
+                          </PushMenuBtn>
+                      )
+                  })
+                  }
+              </div>
+          }
       </SimpleVertical>
   )
 }
+
+// TODO: Hydration error
+// TODO: horizontal alignment
+// TODO: vertical spacing
+// TODO: Make Links
+// TODO: Change Css flex wrapper name
