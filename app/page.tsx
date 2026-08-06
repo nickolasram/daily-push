@@ -6,6 +6,8 @@ import {PushDynamoProject} from "@/models";
 import {QueryCommand} from "@aws-sdk/lib-dynamodb";
 import {getDynamoClient} from "@/globalFunctions/functions";
 import ProjectSquare from "@/app/components/projectSquare";
+import LeftWrapJustifyCenterContainer from "@/app/components/frameworks/leftWrapJustifyCenterContainer";
+import Link from "next/link";
 
 async function getTags() {
     const allTags = new QueryCommand({
@@ -41,26 +43,28 @@ export default async function Home() {
               <p>no projects found</p>
           }
           { projects!.length > 0 &&
-              <div className={'editBtnFlexContainer'}>
+              <LeftWrapJustifyCenterContainer>
                   { projects!.map((project,i) => {
                       return (
-                          <PushMenuBtn
-                              btnStyle={'neon'}
-                              rounded={'rounded-md'}
-                              key={i}>
-                              <ProjectSquare project={project.plainObject()} tags={tagsRefined} />
-                          </PushMenuBtn>
+                          <Link
+                            href={'/project/'+project.date}
+                            key={i}
+                            target={'_blank'}
+                          >
+                              <PushMenuBtn
+                                  btnStyle={'neon'}
+                                  rounded={'rounded-md'}
+                                  >
+                                  <ProjectSquare project={project.plainObject()} tags={tagsRefined} />
+                              </PushMenuBtn>
+                          </Link>
                       )
                   })
                   }
-              </div>
+              </LeftWrapJustifyCenterContainer>
           }
       </SimpleVertical>
   )
 }
 
-// TODO: Hydration error
-// TODO: horizontal alignment
-// TODO: vertical spacing
 // TODO: Make Links
-// TODO: Change Css flex wrapper name

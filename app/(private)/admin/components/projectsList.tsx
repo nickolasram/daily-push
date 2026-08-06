@@ -3,6 +3,7 @@ import {QueryCommand} from "@aws-sdk/lib-dynamodb";
 import {ProjectEditBtn} from "@/app/(private)/admin/components/editBtns";
 import {getDynamoClient} from "@/globalFunctions/functions";
 import {PushDynamoProject} from "@/models";
+import LeftWrapJustifyCenterContainer from "@/app/components/frameworks/leftWrapJustifyCenterContainer";
 
 async function getTags() {
     const allTags = new QueryCommand({
@@ -28,14 +29,14 @@ export default async function ProjectsList() {
                 <p>no projects found</p>
             }
             { projects!.length > 0 &&
-                <div className={'editBtnFlexContainer'}>
+                <LeftWrapJustifyCenterContainer>
                     { projects!.map((project,i) => {
                         return (
                             <ProjectEditBtn project={project.plainObject()} nodes={project.formNodes} key={i} tags={tagsRefined} />
                         )
                     })
                     }
-                </div>
+                </LeftWrapJustifyCenterContainer>
             }
         </>
     )

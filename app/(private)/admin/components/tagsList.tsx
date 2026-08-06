@@ -4,6 +4,7 @@ import {QueryCommand} from "@aws-sdk/lib-dynamodb";
 import {PushTag} from "@/types";
 import {getDynamoClient} from "@/globalFunctions/functions";
 import {TagEditBtn} from "@/app/(private)/admin/components/editBtns";
+import LeftWrapJustifyCenterContainer from "@/app/components/frameworks/leftWrapJustifyCenterContainer";
 
 async function getTags() {
     const allTags = new QueryCommand({
@@ -27,14 +28,14 @@ const TagsList=async()=>{
                 <p>no projects found</p>
             }
             { tags!.length > 0 &&
-                <div className={'editBtnFlexContainer'}>
+                <LeftWrapJustifyCenterContainer>
                     { tags!.map((tag,i) => {
                         return (
                             <TagEditBtn tag={tag} key={i} />
                         )
                     })
                     }
-                </div>
+                </LeftWrapJustifyCenterContainer>
             }
         </>
     )
