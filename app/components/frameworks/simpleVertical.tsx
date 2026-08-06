@@ -10,7 +10,7 @@ const SimpleVertical=({children}:props)=>{
             className={'w-full flex items-center justify-center'}
         >
             <div
-                className={'max-w-300 mx-5'}
+                className={'max-w-300 mx-5 flex flex-col items-center justify-center gap-6'}
             >
                 {children}
             </div>

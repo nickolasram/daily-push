@@ -61,12 +61,13 @@
 }
 
 @layer components {
-  .editBtnFlexContainer{
+  .leftWrapJustifyCenterContainer{
     display: flex;
-    max-width: 80svw;
     flex-wrap: wrap;
+    margin-inline: auto;
     margin-bottom: 24px;
     gap: 12px;
+    max-width: 90%;
   }
   .marbleBtn {
     background-color: var(--color-marble);
