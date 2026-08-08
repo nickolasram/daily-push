@@ -44,7 +44,8 @@ export default async function Home() {
           }
           { projects!.length > 0 &&
               <LeftWrapJustifyCenterContainer>
-                  { projects!.map((project,i) => {
+                  { projects!.map(
+                      (project,i) => {
                       return (
                           <Link
                             href={'/project/'+project.date}
@@ -58,13 +59,12 @@ export default async function Home() {
                                   <ProjectSquare project={project.plainObject()} tags={tagsRefined} />
                               </PushMenuBtn>
                           </Link>
-                      )
-                  })
+                        )
+                      }
+                    )
                   }
               </LeftWrapJustifyCenterContainer>
           }
       </SimpleVertical>
   )
 }
-
-// TODO: Make Links
