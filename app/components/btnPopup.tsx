@@ -1,5 +1,4 @@
-import {Dispatch, ReactNode, SetStateAction} from "react";
-import BurgerNav from "@/app/components/burgerNav";
+import {ReactNode} from "react";
 
 interface ChildProps {
     children: ReactNode;

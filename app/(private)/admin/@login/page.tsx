@@ -1,7 +1,12 @@
-import LoginForm from "@/app/(private)/admin/components/loginForm";
+import PushLoginForm from "@/app/components/pushLoginForm";
 const Page=()=>{
     return(
-        <LoginForm />
+        <div className="w-full h-full min-h-50 grow-1 flex flex-col items-center justify-center">
+            {/*<LoginForm />*/}
+            <PushLoginForm
+                style={'neon'}
+            />
+        </div>
     )
 }
 
