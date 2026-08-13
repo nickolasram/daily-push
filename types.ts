@@ -1,3 +1,5 @@
+import {pushFormNode} from "@/app/components/PushForm";
+
 export interface PushProject {
     objectType: 'project',
     objectId: string,
@@ -7,6 +9,7 @@ export interface PushProject {
     away:boolean,
     date: string,
     tags: string[],
+    formNodes:pushFormNode[]
 }
 
 export interface PushTag{

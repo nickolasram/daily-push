@@ -4,6 +4,7 @@ import {ProjectEditBtn} from "@/app/(private)/admin/components/editBtns";
 import {getDynamoClient} from "@/globalFunctions/functions";
 import {PushDynamoProject} from "@/models";
 import LeftWrapJustifyCenterContainer from "@/app/components/frameworks/leftWrapJustifyCenterContainer";
+import SortedProjectList from "@/app/(private)/admin/components/sortedProjectList";
 
 async function getTags() {
     const allTags = new QueryCommand({
@@ -22,21 +23,17 @@ export default async function ProjectsList() {
     const projects = await PushDynamoProject.getAllProjects()
 
     const tagsRaw = await getTags();
-    const tagsRefined = (tagsRaw as {title:string,objectId:string}[]).map(tag =>({value:tag.objectId,display:tag.title}))
+    const tagsRefined = (tagsRaw as {title:string,objectId:string}[]).map(tag =>({value:tag.objectId.toString(),display:tag.title}))
     return (
         <>
             { projects!.length == 0 &&
                 <p>no projects found</p>
             }
             { projects!.length > 0 &&
-                <LeftWrapJustifyCenterContainer>
-                    { projects!.map((project,i) => {
-                        return (
-                            <ProjectEditBtn project={project.plainObject()} nodes={project.formNodes} key={i} tags={tagsRefined} />
-                        )
-                    })
-                    }
-                </LeftWrapJustifyCenterContainer>
+                <SortedProjectList projects={projects.map(project => {
+                    return project.plainObject();
+                })}
+                   tags={tagsRefined} />
             }
         </>
     )

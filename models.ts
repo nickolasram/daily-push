@@ -153,6 +153,7 @@ export class PushDynamoProject extends PushDynamoClass{
             sick: this.sick,
             tags: this.tags,
             title: this.title,
+            formNodes:this.formNodes,
         }
     }
 
