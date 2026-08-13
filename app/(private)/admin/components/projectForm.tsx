@@ -3,7 +3,6 @@
 import PushForm, {pushFormNode} from "@/app/components/PushForm";
 import {SubmitEvent, useState} from "react";
 import {Button, Dialog, DialogPanel} from "@headlessui/react";
-import {dynamoObject} from "@/types";
 import {PushDynamoProject} from "@/models";
 
 const formNodes =(tags:{display:string,value:string}[]):pushFormNode[]=> ([

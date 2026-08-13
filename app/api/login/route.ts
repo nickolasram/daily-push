@@ -10,6 +10,11 @@ interface potentialResult{
     idToken?:string;
 }
 
+interface returnError{
+    code:string;
+    name:string;
+}
+
 function asyncAuthentication(cognitoUser:CognitoUser, authDetails: AuthenticationDetails) {
     return new Promise((resolve,reject)=>{
         cognitoUser.authenticateUser(authDetails,{
@@ -48,6 +53,9 @@ export async function POST(req: NextRequest){
         }
         return NextResponse.json({success: true}, {status:200});
     } catch (err) {
+        if ((err as returnError).name == 'NotAuthorizedException') {
+            return NextResponse.json({error: err}, {status:501, statusText: 'Incorrect username or password.'});
+        }
         return NextResponse.json({error: err}, {status:500});
     }
 }
