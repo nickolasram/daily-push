@@ -15,7 +15,6 @@
   --color-foreground: #ffffff;
   --color-background: #242525;
   --color-marble: #E6E4D8;
-  /*--color-neon-cyan: var(--color-cyan-700);*/
   --color-neon-cyan: hsl(207, 54%, 46%);
   --color-inner-neon: rgba(255, 255, 255, 0.5);
   --color-off-neon: rgba(255, 255, 255, 0);
