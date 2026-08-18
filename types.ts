@@ -25,3 +25,8 @@ export interface PushIdea {
 }
 
 export type dynamoObject = Record<string,string|number|FormDataEntryValue|object|boolean|string[]>;
+
+export interface PushSortingFilterOption{
+    label: string;
+    sortingFunction: (obj1:object,obj2:object)=>number;
+}
