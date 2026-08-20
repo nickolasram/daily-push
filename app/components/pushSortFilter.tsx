@@ -1,14 +1,16 @@
 "use client"
 
-import {Listbox, ListboxButton, ListboxOption, ListboxOptions} from "@headlessui/react";
+import {Button, Listbox, ListboxButton, ListboxOption, ListboxOptions} from "@headlessui/react";
 import {Dispatch, SetStateAction} from "react";
 import {PushSortingFilterOption} from "@/types";
 
 interface Props {
     sortingOptions: PushSortingFilterOption[];
     style?: 'neon' | 'marble' | string;
-    sortBy: PushSortingFilterOption;
-    setSortBy:Dispatch<SetStateAction<PushSortingFilterOption>>;
+    sortBy?: PushSortingFilterOption;
+    setSortBy?:Dispatch<SetStateAction<PushSortingFilterOption>>;
+    polarity?:number;
+    setPolarity?:Dispatch<SetStateAction<1|-1>>;
 }
 
 const PushSortFilter=(
@@ -17,40 +19,53 @@ const PushSortFilter=(
         style,
         sortBy,
         setSortBy,
+        polarity,
+        setPolarity,
     }:Props
 )=>{
     return(
         <div className={'w-full flex justify-center max-w-[90svw] mb-6'}>
             <div className={`w-9/10 ${style=='neon'?'bg-neon-cyan/75':''}`}>
                 <div className={`w-fit flex px-2 py-2 gap-6 ${style=='neon'?'bg-neon-cyan':''}`}>
-                    <Listbox value={sortBy} onChange={setSortBy}>
-                        <ListboxButton
-                            className={'border border-white rounded-sm flex gap-2'}
+                    { setSortBy && sortBy &&
+                        <Listbox value={sortBy} onChange={setSortBy}>
+                            <ListboxButton
+                                className={'border border-white rounded-sm flex gap-2'}
+                            >
+                                <p className={'max-w-14 min-w-14 w-14 truncate text-left'}>sort</p>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
+                                    <path strokeWidth={1.5} d="M3 6.75h16.5M5 12h12.5M7 17.25h8.5" stroke={'currentColor'} strokeLinecap={'round'} />
+                                </svg>
+                            </ListboxButton>
+                            <ListboxOptions anchor="bottom" className={'w-24 bg-neon-cyan px-1'}>
+                                {sortingOptions.map((option,i) => (
+                                    <ListboxOption key={i} value={option} className="truncate cursor-pointer data-focus:brightness-75">
+                                        {option.label}
+                                    </ListboxOption>
+                                ))}
+                            </ListboxOptions>
+                        </Listbox>
+                    }
+                    { polarity && setPolarity &&
+                        <Button
+                            className={'border border-white rounded-sm flex gap-2 items-center px-1'}
+                            onClick={() => { 
+                                // @ts-expect-error doesn't know this will just flip the polarity
+                                setPolarity(polarity*-1)}}
                         >
-                            <p className={'max-w-14 min-w-14 w-14 truncate text-left'}>sort</p>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
-                                <path strokeWidth={1.5} d="M3 6.75h16.5M5 12h12.5M7 17.25h8.5" stroke={'currentColor'} strokeLinecap={'round'} />
-                            </svg>
-                        </ListboxButton>
-                        <ListboxOptions anchor="bottom" className={'w-24 bg-neon-cyan px-1'}>
-                            {sortingOptions.map((option,i) => (
-                                <ListboxOption key={i} value={option} className="truncate cursor-pointer data-focus:brightness-75">
-                                    {option.label}
-                                </ListboxOption>
-                            ))}
-                        </ListboxOptions>
-                    </Listbox>
-                    <div
-                        className={'border border-white rounded-sm flex gap-2 items-center px-1'}
-                    >
-                        <p className={'max-w-14 min-w-14 w-14 truncate text-left'}>order</p>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25" />
-                        </svg>
-                        {/*<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">*/}
-                        {/*    <path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" />*/}
-                        {/*</svg>*/}
-                    </div>
+                            <p className={'max-w-14 min-w-14 w-14 truncate text-left'}>order</p>
+                            { polarity == 1 &&
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25" />
+                                </svg>   
+                            }
+                            { polarity == -1 &&
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" />
+                                </svg>   
+                            }
+                        </Button>   
+                    }
                     <div
                         className={'border border-white rounded-sm flex gap-2 items-center px-1'}
                     >
