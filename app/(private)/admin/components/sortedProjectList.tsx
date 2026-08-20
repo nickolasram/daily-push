@@ -28,12 +28,33 @@ const sortingOptions = [
         label:'date',
         sortingFunction: sortProjectByDate as (obj1:object,obj2:object,polarity?:number)=>number
     }
-
 ]
+
+const filterByTag=(
+    allTags:{value:string,display:string}[],
+    selectedTags:string[],
+    project:PushProject,
+):boolean=>{
+    if (allTags.length==selectedTags.length){
+        return true
+    }
+    if (project.tags.length==0||!project.tags){
+        return false
+    }
+    for (const tag of project.tags){
+        const tagObject = allTags.find(a=>a.value===tag)
+        const tagObjectValue = tagObject?.display
+        if (!selectedTags.includes(tagObjectValue!)){
+            return false
+        }
+    }
+    return true
+}
 
 const SortedProjectList = ({projects,tags}:Props)=>{
     const [polarity, setPolarity] = useState<1|-1>(1);
-    const [sortBy, setSortBy] = useState<PushSortingFilterOption>(sortingOptions[1]);
+    const [sortBy, setSortBy] = useState<PushSortingFilterOption>(sortingOptions[1])
+    const [selectedFilterOptions,setSelectedFilterOptions]=useState<string[]>(tags.map((a)=>a.display))
 
     return(
         <div className={'w-full'}>
@@ -44,9 +65,12 @@ const SortedProjectList = ({projects,tags}:Props)=>{
                 sortBy={sortBy}
                 polarity={polarity}
                 setPolarity={setPolarity}
+                filterOptions={tags.map((a)=>a.display)}
+                selectedFilterOptions={selectedFilterOptions}
+                setSelectedFilterOptions={setSelectedFilterOptions}
             />
             <LeftWrapJustifyCenterContainer>
-                { projects!.sort((a,b)=>sortBy.sortingFunction(a,b,polarity)).map((project,i) => {
+                { projects!.filter(p=>filterByTag(tags,selectedFilterOptions,p)).sort((a,b)=>sortBy.sortingFunction(a,b,polarity)).map((project,i) => {
                     return (
                         <ProjectEditBtn project={project} nodes={project.formNodes} key={i} tags={tags} />
                     )
