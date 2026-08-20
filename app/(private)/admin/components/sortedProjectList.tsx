@@ -11,28 +11,30 @@ interface Props{
     tags:{value:string,display:string}[];
 }
 
-const sortProjectByName=(obj1:PushProject,obj2:PushProject)=>{
-    return obj1.title.localeCompare(obj2.title, undefined, {numeric:true});
+const sortProjectByName=(obj1:PushProject,obj2:PushProject,polarity:number=1)=>{
+    return polarity * obj1.title.localeCompare(obj2.title, undefined, {numeric:true});
 }
 
-const sortProjectByDate=(obj1:PushProject,obj2:PushProject)=>{
-    return new Date(obj1.date).getTime() - new Date(obj2.date).getTime();
+const sortProjectByDate=(obj1:PushProject,obj2:PushProject,polarity:number=1)=>{
+    return polarity *  (new Date(obj1.date).getTime() - new Date(obj2.date).getTime());
 }
 
 const sortingOptions = [
     {
         label:'name',
-        sortingFunction: sortProjectByName as (obj1:object,obj2:object)=>number
+        sortingFunction: sortProjectByName as (obj1:object,obj2:object,polarity?:number)=>number
     },
     {
         label:'date',
-        sortingFunction: sortProjectByDate as (obj1:object,obj2:object)=>number
+        sortingFunction: sortProjectByDate as (obj1:object,obj2:object,polarity?:number)=>number
     }
 
 ]
 
 const SortedProjectList = ({projects,tags}:Props)=>{
+    const [polarity, setPolarity] = useState<1|-1>(1);
     const [sortBy, setSortBy] = useState<PushSortingFilterOption>(sortingOptions[1]);
+
     return(
         <div className={'w-full'}>
             <PushSortFilter
@@ -40,9 +42,11 @@ const SortedProjectList = ({projects,tags}:Props)=>{
                 style={'neon'}
                 setSortBy={setSortBy}
                 sortBy={sortBy}
+                polarity={polarity}
+                setPolarity={setPolarity}
             />
             <LeftWrapJustifyCenterContainer>
-                { projects!.sort((a,b)=>sortBy.sortingFunction(a,b)).map((project,i) => {
+                { projects!.sort((a,b)=>sortBy.sortingFunction(a,b,polarity)).map((project,i) => {
                     return (
                         <ProjectEditBtn project={project} nodes={project.formNodes} key={i} tags={tags} />
                     )

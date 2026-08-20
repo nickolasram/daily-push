@@ -28,5 +28,5 @@ export type dynamoObject = Record<string,string|number|FormDataEntryValue|object
 
 export interface PushSortingFilterOption{
     label: string;
-    sortingFunction: (obj1:object,obj2:object)=>number;
+    sortingFunction: (obj1:object,obj2:object,polarity?:number)=>number;
 }
