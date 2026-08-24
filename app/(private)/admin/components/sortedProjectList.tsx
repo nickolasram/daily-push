@@ -51,7 +51,7 @@ const filterByTag=(
     return true
 }
 
-const SortedProjectList = ({projects,tags}:Props)=>{
+export default function SortedProjectList  ({projects,tags}:Props){
     const [polarity, setPolarity] = useState<1|-1>(1);
     const [sortBy, setSortBy] = useState<PushSortingFilterOption>(sortingOptions[1])
     const [selectedFilterOptions,setSelectedFilterOptions]=useState<string[]>(tags.map((a)=>a.display))
@@ -80,5 +80,3 @@ const SortedProjectList = ({projects,tags}:Props)=>{
         </div>
     )
 }
-
-export default SortedProjectList;
