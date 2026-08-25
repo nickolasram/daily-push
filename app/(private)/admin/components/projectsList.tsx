@@ -1,9 +1,7 @@
 'use server'
 import {QueryCommand} from "@aws-sdk/lib-dynamodb";
-import {ProjectEditBtn} from "@/app/(private)/admin/components/editBtns";
 import {getDynamoClient} from "@/globalFunctions/functions";
 import {PushDynamoProject} from "@/models";
-import LeftWrapJustifyCenterContainer from "@/app/components/frameworks/leftWrapJustifyCenterContainer";
 import SortedProjectList from "@/app/(private)/admin/components/sortedProjectList";
 
 async function getTags() {

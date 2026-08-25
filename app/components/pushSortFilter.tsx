@@ -3,7 +3,6 @@
 import {Button, Checkbox, Listbox, ListboxButton, ListboxOption, ListboxOptions} from "@headlessui/react";
 import {Dispatch, SetStateAction} from "react";
 import {PushSortingFilterOption} from "@/types";
-import {set} from "immutable";
 
 interface Props {
     sortingOptions: PushSortingFilterOption[];
