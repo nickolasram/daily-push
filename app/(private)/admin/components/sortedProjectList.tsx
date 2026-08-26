@@ -55,6 +55,8 @@ export default function SortedProjectList  ({projects,tags}:Props){
     const [polarity, setPolarity] = useState<1|-1>(1);
     const [sortBy, setSortBy] = useState<PushSortingFilterOption>(sortingOptions[1])
     const [selectedFilterOptions,setSelectedFilterOptions]=useState<string[]>(tags.map((a)=>a.display))
+    const [startDate, setStartDate] = useState(new Date());
+    const [endDate, setEndDate] = useState(new Date());
 
     return(
         <div className={'w-full'}>
@@ -68,6 +70,9 @@ export default function SortedProjectList  ({projects,tags}:Props){
                 filterOptions={tags.map((a)=>a.display)}
                 selectedFilterOptions={selectedFilterOptions}
                 setSelectedFilterOptions={setSelectedFilterOptions}
+                startDate={startDate}
+                endDate={endDate}
+                flexibleMonth={true}
             />
             <LeftWrapJustifyCenterContainer>
                 { projects!.filter(p=>filterByTag(tags,selectedFilterOptions,p)).sort((a,b)=>sortBy.sortingFunction(a,b,polarity)).map((project,i) => {
