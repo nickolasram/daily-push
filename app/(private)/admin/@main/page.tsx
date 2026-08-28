@@ -13,7 +13,7 @@ const Page=()=>{
     return (
         <ThinTabsFramework tabs={['Projects','Tags', 'Demos', 'Ideas']}>
             <TTFChild>
-                <h2 className={'mb-6'}>Projects</h2>
+                <h2 className={'mb-4 md:mb-6'}>Projects</h2>
                 <Suspense fallback={<p>Loading...</p>}>
                     <ProjectsList />
                 </Suspense>
@@ -22,7 +22,7 @@ const Page=()=>{
                 </Suspense>
             </TTFChild>
             <TTFChild>
-                <h2 className={'mb-6'}>Project Tags</h2>
+                <h2 className={'mb-4 md:mb-6'}>Project Tags</h2>
                 <Suspense fallback={<p>Loading...</p>}>
                     <>
                         <TagsList />
@@ -31,11 +31,11 @@ const Page=()=>{
                 </Suspense>
             </TTFChild>
             <TTFChild>
-                <h2 className={'mb-6'}>Demos</h2>
+                <h2 className={'mb-4 md:mb-6'}>Demos</h2>
                 <p>coming soon</p>
             </TTFChild>
             <TTFChild>
-                <h2 className={'mb-6'}>Ideas</h2>
+                <h2 className={'mb-4 md:mb-6'}>Ideas</h2>
                 <Suspense fallback={<p>Loading...</p>}>
                     <IdeasWrapper />
                 </Suspense>
