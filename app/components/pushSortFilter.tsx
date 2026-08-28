@@ -21,6 +21,18 @@ interface Props {
     setStartDate?:Dispatch<SetStateAction<Date>>;
     endDate?:Date;
     setEndDate?:Dispatch<SetStateAction<Date>>;
+    setMonth?:Dispatch<SetStateAction<[number,number]>>;
+    monthAndYear?:[number,number];
+    minDate?:Date;
+    maxDate?:Date;
+    options: {
+        sort?:0|1,
+        order?:0|1,
+        tags?:0|1,
+        date?:0|1,
+        search?:0|1,
+        items?:0|1,
+    }
 }
 
 const PushSortFilter=(
@@ -39,6 +51,11 @@ const PushSortFilter=(
         endDate=new Date(),
         setStartDate,
         setEndDate,
+        setMonth,
+        monthAndYear,
+        minDate,
+        maxDate,
+        options
     }:Props
 )=>{
     let startDisplayDate:Date;
@@ -49,20 +66,14 @@ const PushSortFilter=(
         startDisplayDate.setDate(startDisplayDate.getDate()-15);
         endDisplayDate.setDate(endDisplayDate.getDate()+15);
     } else {
-        const year = startDate.getFullYear();
-        const numericalMonth = startDate.getMonth() + 1;
-        const firstDayString = `${year}-${numericalMonth}-1`;
-        const nextDayString = `${year}-${(numericalMonth+1)%12}-1`;
-        startDisplayDate = new Date(firstDayString);
-        endDisplayDate = new Date(nextDayString);
+        startDisplayDate = new Date(monthAndYear?monthAndYear[1]:2000,monthAndYear?monthAndYear[0]:0);
     }
 
     return(
         <div className={'w-full mb-6'}>
             <div className={'w-full flex justify-center max-w-[90svw]'}>
-                <div className={`w-9/10 ${style=='neon'?'bg-neon-cyan/75':''}`}>
-                    <div className={`w-fit flex px-2 py-2 gap-6 ${style=='neon'?'bg-neon-cyan':''}`}>
-                        { setSortBy && sortBy &&
+                <div className={`w-9/10 justify-center flex px-2 py-2 gap-6 ${style=='neon'?'bg-neon-cyan':''}`}>
+                        { options.sort && setSortBy && sortBy &&
                             <Listbox value={sortBy} onChange={setSortBy}>
                                 <ListboxButton
                                     className={'border border-white rounded-sm flex gap-2'}
@@ -81,7 +92,7 @@ const PushSortFilter=(
                                 </ListboxOptions>
                             </Listbox>
                         }
-                        { polarity && setPolarity &&
+                        { options.order && polarity && setPolarity &&
                             <Button
                                 className={'border border-white rounded-sm flex gap-2 items-center px-1'}
                                 onClick={() => {
@@ -101,7 +112,7 @@ const PushSortFilter=(
                                 }
                             </Button>
                         }
-                        { selectedFilterOptions && setSelectedFilterOptions && filterOptions &&
+                        { options.tags && selectedFilterOptions && setSelectedFilterOptions && filterOptions &&
                             <Listbox value={selectedFilterOptions} onChange={setSelectedFilterOptions} multiple={true}>
                                 <ListboxButton
                                     className={'border border-white rounded-sm flex gap-2 items-center px-1'}
@@ -131,53 +142,72 @@ const PushSortFilter=(
                             </Listbox>
 
                         }
-                        <Popover>
-                            <PopoverButton
+                        { options.date &&
+                            <Popover>
+                                <PopoverButton
+                                    className={'border border-white rounded-sm flex gap-2 items-center px-1'}
+                                >
+                                    <p className={'max-w-14 min-w-14 w-14 truncate text-left'}>date</p>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                    </svg>
+                                </PopoverButton>
+                                <PopoverPanel
+                                    className={'bg-white text-black fixed'}
+                                    data-open={'close'}
+                                >
+                                    {({ close }) =>(
+                                        <Calendar
+                                            minDate={minDate??new Date(1900,0)}
+                                            maxDate={maxDate??new Date(2100,0)}
+                                            defaultValue={new Date(monthAndYear?monthAndYear[1]:2000,monthAndYear?monthAndYear[0]:0)}
+                                            maxDetail={'year'}
+                                            view={'year'}
+                                            onClickMonth={(value)=>{
+                                                if (setMonth && monthAndYear){
+                                                    setMonth([value.getMonth()??0,value.getFullYear()??0])
+                                                }
+                                                close()
+                                            }}
+                                        />
+                                    )
+                                    }
+                                </PopoverPanel>
+                            </Popover>
+                        }
+                        { options.search &&
+                            <div
                                 className={'border border-white rounded-sm flex gap-2 items-center px-1'}
                             >
-                                <p className={'max-w-14 min-w-14 w-14 truncate text-left'}>date</p>
+                                <p className={'max-w-14 min-w-14 w-14 truncate text-left'}>search</p>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                                 </svg>
-                            </PopoverButton>
-                            <PopoverPanel
-                                className={'bg-white text-black fixed'}
-                                data-open={'close'}
+                            </div>
+                        }
+                        { options.items &&
+                            <div
+                                className={'border border-white rounded-sm flex gap-2 items-center px-1'}
                             >
-                                {({ close }) =>(
-                                    <Calendar
-                                        defaultValue={new Date()}
-                                        maxDetail={'year'}
-                                        view={'year'}
-                                        onClickMonth={()=>{close()}}
-                                    />
-                                )
-                                }
-                            </PopoverPanel>
-                        </Popover>
-                        <div
-                            className={'border border-white rounded-sm flex gap-2 items-center px-1'}
-                        >
-                            <p className={'max-w-14 min-w-14 w-14 truncate text-left'}>search</p>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                            </svg>
-                        </div>
-                        <div
-                            className={'border border-white rounded-sm flex gap-2 items-center px-1'}
-                        >
-                            <p className={'max-w-14 min-w-14 w-14 truncate text-left'}>items</p>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
-                            </svg>
-                        </div>
+                                <p className={'max-w-14 min-w-14 w-14 truncate text-left'}>items</p>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+                                </svg>
+                            </div>
+                        }
                     </div>
-                </div>
             </div>
             <div className={'w-full flex justify-center max-w-[90svw]'}>
                 <div className={`w-9/10 gap-6 flex justify-center ${style=='neon'?'bg-neon-cyan/75':''}`}>
-                    <p>{startDisplayDate.toLocaleDateString()}</p>
-                    <p>{endDisplayDate.toLocaleDateString()}</p>
+                    { options.sort &&
+                        <p className={'capitalize'}>Sort: {sortBy?.label}</p>
+                    }
+                    { options.order &&
+                        <p className={'capitalize'}>Order: {polarity==1?'Desc':'Asc'}</p>
+                    }
+                    { options.date &&
+                        <p>Date: {startDisplayDate.toLocaleDateString("en-US", {month:"long",year:"numeric"})}</p>
+                    }
                 </div>
             </div>
         </div>

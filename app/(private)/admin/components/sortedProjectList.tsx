@@ -51,12 +51,32 @@ const filterByTag=(
     return true
 }
 
+const projectFilter=(
+    allTags:{value:string,display:string}[],
+    selectedTags:string[],
+    project:PushProject,
+    monthAndYear:[number,number]
+):boolean=>{
+    if (!filterByTag(allTags,selectedTags,project)){
+        return false
+    } else {
+        const startDate = new Date(monthAndYear[1],monthAndYear[0])
+        startDate.setUTCHours(0)
+        const endDate = new Date(monthAndYear[1],monthAndYear[0]+1)
+        endDate.setUTCHours(0)
+        return (new Date(project.date) >= startDate) && (new Date(project.date) < endDate)
+    }
+}
+
 export default function SortedProjectList  ({projects,tags}:Props){
     const [polarity, setPolarity] = useState<1|-1>(1);
     const [sortBy, setSortBy] = useState<PushSortingFilterOption>(sortingOptions[1])
     const [selectedFilterOptions,setSelectedFilterOptions]=useState<string[]>(tags.map((a)=>a.display))
-    const [startDate, setStartDate] = useState(new Date());
-    const [endDate, setEndDate] = useState(new Date());
+    const [monthAndYear,setMonthAndYear]=useState<[number,number]>([new Date().getMonth(),new Date().getFullYear()])
+
+    const filteredProjects = projects!.filter(p=>projectFilter(tags,selectedFilterOptions,p,monthAndYear))
+
+    const sortedProjects= filteredProjects.sort((a,b)=>sortBy.sortingFunction(a,b,polarity))
 
     return(
         <div className={'w-full'}>
@@ -70,18 +90,29 @@ export default function SortedProjectList  ({projects,tags}:Props){
                 filterOptions={tags.map((a)=>a.display)}
                 selectedFilterOptions={selectedFilterOptions}
                 setSelectedFilterOptions={setSelectedFilterOptions}
-                startDate={startDate}
-                endDate={endDate}
-                flexibleMonth={true}
+                flexibleMonth={false}
+                setMonth={setMonthAndYear}
+                monthAndYear={monthAndYear}
+                minDate={new Date(2026,5,29)}
+                maxDate={new Date(2026,10,15)}
+                options={{sort: 1,order:1,date:1}}
             />
-            <LeftWrapJustifyCenterContainer>
-                { projects!.filter(p=>filterByTag(tags,selectedFilterOptions,p)).sort((a,b)=>sortBy.sortingFunction(a,b,polarity)).map((project,i) => {
-                    return (
-                        <ProjectEditBtn project={project} nodes={project.formNodes} key={i} tags={tags} />
-                    )
-                })
-                }
-            </LeftWrapJustifyCenterContainer>
+            { filteredProjects.length > 0 &&
+                <LeftWrapJustifyCenterContainer>
+                    { sortedProjects.map((project,i) => {
+                        return (
+                            <ProjectEditBtn project={project} nodes={project.formNodes} key={i} tags={tags} />
+                        )
+                    })
+                    }
+                </LeftWrapJustifyCenterContainer>
+            }
+            {
+                filteredProjects.length == 0 &&
+                <LeftWrapJustifyCenterContainer>
+                    <p>No Projects Found</p>
+                </LeftWrapJustifyCenterContainer>
+            }
         </div>
     )
 }
