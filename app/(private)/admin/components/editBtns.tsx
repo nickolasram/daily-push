@@ -131,6 +131,8 @@ export function TagEditBtn ({tag}:{tag:PushTag}){
             open={open}
             setOpen={setOpen}
             handleDelete={deleteTag}
+            btnStyle={'neon'}
+            rounded={'rounded-md'}
         >
             <p>{tag.title}</p>
         </FormDialogBtn>
