@@ -106,9 +106,9 @@ const PushSortFilter=(
                                         </svg>
                                         <p className={'max-w-14 capitalize min-w-14 w-14 truncate text-left'}>{sortBy.label}</p>
                                     </ListboxButton>
-                                    <ListboxOptions anchor="bottom" className={'w-24 bg-neon-cyan px-1'}>
+                                    <ListboxOptions anchor="bottom" className={'w-24 text-white bg-gray-700 px-1'}>
                                         {sortingOptions.map((option,i) => (
-                                            <ListboxOption key={i} value={option} className="truncate cursor-pointer data-focus:brightness-75">
+                                            <ListboxOption key={i} value={option} className="truncate last-of-type:border-none border-b-1 border-white cursor-pointer data-focus:brightness-75">
                                                 {option.label}
                                             </ListboxOption>
                                         ))}

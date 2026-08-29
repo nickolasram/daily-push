@@ -133,8 +133,19 @@ export class PushDynamoProject extends PushDynamoClass{
 
     public static detectedChanges(event:SubmitEvent<HTMLFormElement>,oldPushProject:PushProject){
         const formValues = PushDynamoProject.formattedFormValues(event);
+        function arraysEqual(a:string[], b:string[]) {
+            if (a === b) return true;
+            if (a == null || b == null) return false;
+            if (a.length !== b.length) return false;
+
+            for (let i = 0; i < a.length; i++) {
+                if (a[i] !== b[i]) return false;
+            }
+
+            return true;
+        }
         return {
-            tags: formValues.tags!=oldPushProject.tags?formValues.tags:undefined,
+            tags: !arraysEqual(oldPushProject.tags.sort(),formValues.tags.sort())?formValues.tags:undefined,
             title: formValues.title!=oldPushProject.title?formValues.title:undefined,
             description: formValues.description!=oldPushProject.description?formValues.description:undefined,
             date: formValues.date!=oldPushProject.date?formValues.date:undefined,

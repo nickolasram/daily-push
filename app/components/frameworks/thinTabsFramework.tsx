@@ -23,7 +23,7 @@ export function TTFChild({children, className}:TTFChildProps){
 
 const ThinTabsFramework=({tabs,children,tabListAddendum}:ThinTabsFrameworkProps)=>{
     return (
-        <TabGroup as={'div'} className={'min-h-50 grow-1 w-screen flex'}>
+        <TabGroup as={'div'} className={'min-h-50 grow-1 w-[calc(100vw-20px)] flex'}>
             <ThinLeftTabs tabs={tabs} tabListAddendum={tabListAddendum} />
             <TabPanels>
                 {children}
