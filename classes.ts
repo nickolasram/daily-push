@@ -33,7 +33,7 @@ export abstract class PushDynamoClass {
         const keys = Object.keys(changes);
         for (const key of keys) {
             let attributeAlias = key[0];
-            while (expressionAttributeNames[attributeAlias]) {
+            while (expressionAttributeNames['#'+attributeAlias]) {
                 attributeAlias = attributeAlias + "a";
             }
             expressionAttributeNames['#'+attributeAlias] = key;

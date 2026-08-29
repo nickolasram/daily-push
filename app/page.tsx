@@ -1,13 +1,11 @@
 "use server";
 
 import SimpleVertical from "@/app/components/frameworks/simpleVertical";
-import PushMenuBtn from "@/app/components/pushMenuBtn";
 import {PushDynamoProject} from "@/models";
 import {QueryCommand} from "@aws-sdk/lib-dynamodb";
 import {getDynamoClient} from "@/globalFunctions/functions";
-import ProjectSquare from "@/app/components/projectSquare";
-import LeftWrapJustifyCenterContainer from "@/app/components/frameworks/leftWrapJustifyCenterContainer";
-import Link from "next/link";
+import {Suspense} from "react";
+import HomeProjectList from "@/app/components/homeProjectList";
 
 async function getTags() {
     const allTags = new QueryCommand({
@@ -39,32 +37,14 @@ export default async function Home() {
               new update to github <b>daily</b> containing ready-to-publish content usually as self-contained pages or modules I use as an excuse to explore design ideas,
               review concepts, and build prototypes that will be incorporated into larger projects.
           </p>
-          { projects!.length == 0 &&
-              <p>no projects found</p>
-          }
-          { projects!.length > 0 &&
-              <LeftWrapJustifyCenterContainer>
-                  { projects!.map(
-                      (project,i) => {
-                      return (
-                          <Link
-                            href={'/project/'+project.date}
-                            key={i}
-                            target={'_blank'}
-                          >
-                              <PushMenuBtn
-                                  btnStyle={'neon'}
-                                  rounded={'rounded-md'}
-                                  >
-                                  <ProjectSquare project={project.plainObject()} tags={tagsRefined} />
-                              </PushMenuBtn>
-                          </Link>
-                        )
-                      }
-                    )
-                  }
-              </LeftWrapJustifyCenterContainer>
-          }
+          <Suspense fallback={<p>Loading...</p>}>
+              <HomeProjectList
+                projects={
+                    projects.map(project=>(project.plainObject()))
+                }
+                tags={tagsRefined}
+              />
+          </Suspense>
       </SimpleVertical>
   )
 }
