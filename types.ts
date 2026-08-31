@@ -30,3 +30,17 @@ export interface PushSortingFilterOption{
     label: string;
     sortingFunction: (obj1:object,obj2:object,polarity?:number)=>number;
 }
+
+export interface PushArticle {
+    heading:string;
+    subheading:string|undefined;
+    articleId:string;
+    firstPublishedDate:string|Date|undefined;
+    latestUpdatedDate:string|Date|undefined;
+    savedContent:string;
+    publishedContent:string|undefined;
+    published:boolean;
+    lastSavedDate:string|Date|undefined;
+    authorId:string;
+    headerImage:string|undefined;
+}
