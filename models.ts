@@ -8,9 +8,37 @@ import {
     QueryCommand,
     UpdateCommandOutput
 } from "@aws-sdk/lib-dynamodb";
-import {dynamoObject, PushIdea, PushProject, PushTag} from "@/types";
+import {dynamoObject, PushArticle, PushIdea, PushProject, PushTag} from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {getDynamoClient} from "@/globalFunctions/functions";
+
+export class PushDynamoArticle {
+    public articleId:string;
+    public heading:string;
+    public subheading:string|undefined;
+    public firstPublishedDate:string|Date|undefined;
+    public latestUpdatedDate:string|Date|undefined;
+    public savedContent:string;
+    public publishedContent:string|undefined;
+    public published:boolean;
+    public lastSavedDate:string|Date|undefined;
+    public authorId:string;
+    public headerImage:string|undefined;
+
+    constructor(article:PushArticle){
+        this.articleId = article.articleId;
+        this.heading = article.heading;
+        this.subheading = article.subheading;
+        this.firstPublishedDate = article.firstPublishedDate;
+        this.latestUpdatedDate = article.latestUpdatedDate;
+        this.savedContent = article.savedContent;
+        this.lastSavedDate = article.lastSavedDate;
+        this.authorId = article.authorId;
+        this.headerImage = article.headerImage;
+        this.publishedContent = article.publishedContent;
+        this.published = article.published;
+    }
+}
 
 export class PushDynamoProject extends PushDynamoClass{
     public table:string = 'daily-push';
