@@ -41,6 +41,7 @@ export interface PushArticle {
     publishedContent:string|undefined;
     published:boolean;
     lastSavedDate:string|Date|undefined;
-    authorId:string;
+    authorId:string[];
     headerImage:string|undefined;
+    objectType:'article'
 }
