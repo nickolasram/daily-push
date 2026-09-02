@@ -169,9 +169,10 @@ interface pushFormProps {
     onSubmit: (event: SubmitEvent<HTMLFormElement>)=>void,
     rounded?: 'rounded-xs' | 'rounded-sm' | 'rounded-md' | 'rounded-lg' | 'rounded-xl' | string,
     ref?: RefObject<HTMLFormElement|null>,
+    altControls?:ReactNode,
 }
 
-const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRoundedDefault,ref}:pushFormProps)=>{
+const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRoundedDefault,ref,altControls}:pushFormProps)=>{
     // TODO: Right now, can only save the value of one rich text field
     const [state, dispatch] = useReducer(
         // TODO: fix typing without ignoring
@@ -398,19 +399,31 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                         />
                     )
                 }
+                else if(field.type == 'image'){
+                    return (
+                        <div key={i}>
+                            <p>{field.label}</p>
+                            <p>Image</p>
+                        </div>
+                    )
+                }
                 else {
                             return(
                                 <div key={i}>
                                     <p>name: {field.name}</p>
                                     <p>type: {field.type}</p>
-                                    <p>id: {field.id}</p>
                                 </div>
                             )
                         }
                     }
                 )
             }
-            <button type={'submit'} className={'w-fit'}>Submit</button>
+            { altControls ?
+                <>
+                    {altControls}
+                </> :
+                <button type={'submit'} className={'w-fit'}>Submit</button>
+            }
         </form>
     )
 }
