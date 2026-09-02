@@ -8,6 +8,8 @@ import {
 import {dynamoObject, PushArticle} from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {SubmitEvent} from "react";
+import {pushFormNode} from "@/app/components/PushForm";
+import ArticleControls from "@/app/components/articleControls";
 
 export abstract class PushDynamoClass {
 
@@ -65,31 +67,58 @@ export abstract class PushDynamoClass {
 }
 
 export class PushDynamoArticle extends PushDynamoClass{
-    public articleId:string;
-    public heading:string;
+    public articleId:string|undefined;
+    public heading:string|undefined;
     public subheading:string|undefined;
     public firstPublishedDate:string|Date|undefined;
     public latestUpdatedDate:string|Date|undefined;
-    public savedContent:string;
+    public savedContent:string|undefined;
     public publishedContent:string|undefined;
     public published:boolean;
     public lastSavedDate:string|Date|undefined;
     public authorId:string[];
     public headerImage:string|undefined;
+    public formNodes:pushFormNode[];
 
-    constructor(article:PushArticle){
+    constructor();
+    constructor(article?:PushArticle){
         super();
-        this.articleId = article.articleId;
-        this.heading = article.heading;
-        this.subheading = article.subheading;
-        this.firstPublishedDate = article.firstPublishedDate;
-        this.latestUpdatedDate = article.latestUpdatedDate;
-        this.savedContent = article.savedContent;
-        this.lastSavedDate = article.lastSavedDate;
-        this.authorId = article.authorId;
-        this.headerImage = article.headerImage;
-        this.publishedContent = article.publishedContent;
-        this.published = article.published;
+        this.articleId = article?.articleId;
+        this.heading = article?.heading;
+        this.subheading = article?.subheading;
+        this.firstPublishedDate = article?.firstPublishedDate;
+        this.latestUpdatedDate = article?.latestUpdatedDate;
+        this.savedContent = article?.savedContent;
+        this.lastSavedDate = article?.lastSavedDate;
+        this.authorId = article?.authorId??[];
+        this.headerImage = article?.headerImage;
+        this.publishedContent = article?.publishedContent;
+        this.published = article?.published??false;
+        this.formNodes = [
+            { name: 'heading', type: 'text', label: 'Heading', defaultValue: this.heading},
+            { name: 'subheading', type: 'text', label: 'Subheading', defaultValue: this.heading},
+            { name: 'headerImage', type: 'image', label: 'Header Image', defaultValue: this.headerImage},
+        ]
+    }
+
+    public setHeadingLabel(newLabel:string){
+        this.formNodes[0].label = newLabel;
+    }
+
+    public setSubheadingLabel(newLabel:string){
+        this.formNodes[1].label = newLabel;
+    }
+
+    public hideSubheadingField():void{
+        this.formNodes = this.formNodes.splice(1,1)
+    }
+
+    public altControls(){
+        return ArticleControls
+    }
+
+    public getControlValue(event:SubmitEvent<HTMLFormElement>):'save'|'publish'{
+        return event.nativeEvent.submitter?.dataset['value'] as 'save'|'publish'
     }
 
     public static get(client:DynamoDBDocumentClient,
