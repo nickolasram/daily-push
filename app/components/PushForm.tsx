@@ -184,6 +184,7 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
             editorKey:0,
             defaultDescription:'',
             description:'',
+            selectedImageFile:''
         }
     );
     useEffect(()=>{
@@ -402,8 +403,29 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                 else if(field.type == 'image'){
                     return (
                         <div key={i}>
-                            <p>{field.label}</p>
-                            <p>Image</p>
+                            <Field  className="flex"
+                                    style={{flexDirection:field.labelPlacement??labelPlacementDefault??'column'}}>
+                                <Label>{field.label??field.name}</Label>
+                                <Input
+                                    onChange={(event)=>{
+                                        const files = event.target.files??[]
+                                        if (files.length > 0){
+                                            const file = files[0]
+                                            const src = URL.createObjectURL(file)
+                                            dispatch({selectedImageFile:src})
+                                        }
+                                    }}
+                                    type={'file'} name={field.name} accept={'image/*'} className={'fileInputField'} />
+                            </Field>
+                            { (state.selectedImageFile as string)?.length > 0 &&
+                                <div className={'max-w-40 w-fit my-6 border flex justify-center items-center'}>
+                                    <img
+                                        src={state.selectedImageFile as string}
+                                        alt={'Image File Preview'}
+                                        className={'object-contain'}
+                                    />
+                                </div>
+                            }
                         </div>
                     )
                 }

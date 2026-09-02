@@ -166,6 +166,17 @@
     background: #10786d;
     background: linear-gradient(13deg,var(--color-neon-cyan) 25%, hsl(207, 54%, 59%) 50%, var(--color-neon-cyan) 75%);
   }
+  .fileInputField{
+    padding: 0;
+  }
+  .fileInputField::file-selector-button{
+    background-color: lightgray;
+    color: black;
+    padding: 2px 5px;
+    border: 1px solid black;
+    border-radius: 5px;
+    cursor: pointer;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
