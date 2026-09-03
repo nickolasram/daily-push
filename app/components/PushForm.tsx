@@ -2,32 +2,153 @@
 import {Fragment, ReactNode, RefObject, SubmitEvent, useEffect, useReducer, useRef, useState} from "react";
 import {Field, Input, Label, Textarea, Checkbox, Legend, Fieldset, Radio, RadioGroup, Button} from '@headlessui/react'
 import TextEditor from "@/app/components/textEditor/TextEditor";
+import {defaultKVFieldValues} from "@/types";
 
 interface keyValueBlockProps {
-    name: string
+    name: string,
+    defaultKV?:{record:{key:string,value:string},object:boolean},
+    suggestedKVs?:(string|{value:string,display:string})[],
+    reference?:{value:string,display:string}[]
 }
 
 export function generateKVRecord(name:string, formData:FormData) {
-    const returnedRecord:Record<string,string> = {}
+    const returnedRecords: { record:Record<string, string>, object:boolean }[] = []
     const recordKeys = formData.getAll(name+'Key') as [string];
     const recordValues = formData.getAll(name+'Value') as [string];
+    const recordObject = formData.getAll(name+'Object') as [string];
     const listLength = recordKeys.length;
     for(let i=0;i<listLength;i++){
-        returnedRecord[recordKeys[i]] = recordValues[i];
+        returnedRecords.push(
+            {
+                record: {
+                    key:recordKeys[i],
+                    value:recordValues[i],
+                },
+                object:!!recordObject.find(obj=>obj==(recordValues[i]+'Object'))
+            }
+        )
     }
-    return returnedRecord;
+    console.log(returnedRecords)
+    return returnedRecords;
 }
 
-const KeyValueBlock=({name}:keyValueBlockProps)=>{
-    const [keyValue, setKeyValue] = useState<string>("[empty]")
-    const [valueValue, setValueValue] = useState<string>("[empty]")
+const KeyValueBlock=({name,defaultKV,suggestedKVs,reference}:keyValueBlockProps)=>{
+    let defaultDisplay = '';
+    if(defaultKV){
+        if(defaultKV.object){
+            const referencedObject = reference?.find(obj=> {
+                return obj.value == defaultKV.record.value
+            })
+            if(referencedObject){
+                defaultDisplay = referencedObject.display
+            } else {
+                defaultDisplay = '[User not found]'
+            }
+        } else {
+            defaultDisplay = defaultKV.record.value
+        }
+    }
+    const [keyValue, setKeyValue] = useState<string>(defaultKV?defaultKV.record.key:"[empty]")
+    const [valueValue, setValueValue] = useState<string>(defaultKV?defaultKV.record.value:"[empty]")
+    const [valueDisplay,setValueDisplay] = useState<string>(defaultDisplay)
+    const [objectBoolean,setObjectBoolean] = useState<boolean>(defaultKV?.object??false)
+    const [matchingValues,setMatchingValues]=useState<(string|{display:string,value:string})[]>([])
+    const handleChange=(input:string)=>{
+        if(input?.length==0){
+            setMatchingValues([])
+        } else {
+            const regexValue = input + '.*'
+            const re = new RegExp(regexValue, 'i')
+            setMatchingValues(suggestedKVs!.filter(ptv=> {
+                    if (typeof ptv === "string") {
+                        return re.test(ptv)
+                    } else {
+                        return re.test(ptv.display)
+                    }
+                }
+            ))
+        }
+    }
     // TODO: Make more flexible width
     return(
-        <div className={'flex flex-col border-black border-b-1'}>
+        <div className={'flex flex-col border-black border-b-1 relative'}>
             <input className={'hidden size-0'} type={'checkbox'} name={name+'Key'} value={keyValue} defaultChecked={true} readOnly={true} />
-            <input placeholder={'key'} className={'border-black w-60 border-b-1'} type={'text'} onChange={(e)=>setKeyValue(e.target.value)} />
+            {defaultKV ?
+                <input value={keyValue} className={'border-black w-60 border-b-1'} type={'text'}
+                       onChange={(e)=> {
+                           setKeyValue(e.target.value)
+                       }}
+                /> :
+                <input placeholder={'key'} className={'border-black w-60 border-b-1'} type={'text'}
+                       onChange={(e)=> {
+                           setKeyValue(e.target.value)
+                       }}
+                />
+            }
             <input className={'hidden size-0'} type={'checkbox'} name={name+'Value'} value={valueValue} defaultChecked={true} readOnly={true} />
-            <input placeholder={'value'} className={'w-60 backdrop-brightness-95'} type={'text'} onChange={(e)=>setValueValue(e.target.value)} />
+            <input className={'hidden size-0'} type={'checkbox'} name={name+'Object'} value={valueValue+'Object'} checked={objectBoolean} readOnly={true} />
+            { defaultKV ?
+                <input className={'w-60 backdrop-brightness-95'} type={'text'} value={valueDisplay}
+                       onBlur={()=>{
+                           setMatchingValues([])
+                       }}
+                       onChange={(e)=> {
+                           setValueValue(e.target.value);
+                           setValueDisplay(e.target.value);
+                           if (suggestedKVs) {
+                               handleChange(e.target.value)
+                           }
+                       }
+                       }
+                />    :
+                <input placeholder={'value'} className={'w-60 backdrop-brightness-95'} type={'text'} value={valueDisplay}
+                       onBlur={()=>{
+                           setMatchingValues([])
+                       }}
+                       onChange={(e)=> {
+                           setValueValue(e.target.value);
+                           setValueDisplay(e.target.value);
+                           if (suggestedKVs) {
+                               handleChange(e.target.value)
+                           }
+                       }
+                       }
+                />
+            }
+            { matchingValues?.length > 0 &&
+                <div className={'z-10 absolute top-[100%] w-full border-black border-2 left-3  bg-white'}>
+                    { matchingValues.map((v,i)=>{
+                        let display:string;
+                        if (typeof v==="string"){
+                            display=v
+                        }else{
+                            display=v.display
+                        }
+                        return (
+                            <Button
+                                key={i}
+                                className={'text-left cursor-pointer border-0 bg-white hover:bg-gray-300 focus:bg-gray-300 last-of-type:border-b-0 border-b-1 w-full'}
+                                onClick={()=> {
+                                    if (typeof v==="string"){
+                                        setValueValue(v)
+                                        setValueDisplay(v)
+                                        setObjectBoolean(false)
+                                        setMatchingValues([])
+                                    } else {
+                                        setValueValue(v.value)
+                                        setValueDisplay(v.display)
+                                        setObjectBoolean(true)
+                                        setMatchingValues([])
+                                    }
+                                }}
+                            >
+                                {display}
+                            </Button>
+                        )
+                    })
+                    }
+                </div>
+            }
         </div>
     )
 }
@@ -35,20 +156,35 @@ const KeyValueBlock=({name}:keyValueBlockProps)=>{
 interface keyValueFieldProps {
     name: string,
     rounded:'rounded-xs'|'rounded-sm'|'rounded-md'|'rounded-lg'|'rounded-xl'|string,
+    defaultKVs?:defaultKVFieldValues,
+    suggestedKVs?:(string|{value:string,display:string})[],
 }
 
-const KeyValueField=({name,rounded}:keyValueFieldProps)=>{
+const KeyValueField=({name,rounded,defaultKVs,suggestedKVs}:keyValueFieldProps)=>{
     const [blockCount,setBlockCount]=useState(1)
     return (
-        <div className={`flex flex-col border ${rounded}`}>
-            {[...Array(blockCount)].map((_,i)=>{
-                return(
-                    <KeyValueBlock name={name} key={i} />
-                )
-            })
+        <div className={`flex flex-col border w-fit ${rounded}`}>
+            {defaultKVs && defaultKVs.defaultRecords.length > 0 &&
+                <>
+                    {defaultKVs.defaultRecords.map((_,i)=>{
+                        return(
+                            <KeyValueBlock name={name} key={i} defaultKV={_} suggestedKVs={suggestedKVs} reference={defaultKVs.reference} />
+                        )
+                    })
+                    }
+                </>
             }
-            {/*TODO:replace with headless ui button*/}
-            <button
+            { !defaultKVs &&
+                <>
+                    {[...Array(blockCount)].map((_,i)=>{
+                        return(
+                            <KeyValueBlock name={name} key={i} suggestedKVs={suggestedKVs} />
+                        )
+                    })
+                    }
+                </>
+            }
+            <Button
                 type='button'
                 onClick={()=>setBlockCount(blockCount+1)}
                 className={'border-none flex gap-2 items-center'}
@@ -57,7 +193,7 @@ const KeyValueField=({name,rounded}:keyValueFieldProps)=>{
                     <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clipRule="evenodd" />
                 </svg>
                 <p className={'text-sm text-gray-900'}>Add Key,Value</p>
-            </button>
+            </Button>
         </div>
     )
 }
@@ -154,9 +290,11 @@ export interface pushFormNode {
     node?: ReactNode,
     options?:Array<{ value:string, label:string, defaultChecked?:boolean }>,
     tags?: {display:string,value:string}[],
-    type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags',
+    type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags' | 'listColumn',
     defaultValue?: string | number,
     defaultTags?: string[],
+    defaultKVs?:defaultKVFieldValues,
+    suggestedKVs?:(string|{value:string,display:string})[],
 //     placeholder
 //     default
 //     onChange
@@ -284,7 +422,12 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                         <div key={i} className="flex"
                                   style={{flexDirection:field.labelPlacement??labelPlacementDefault??'column'}}>
                             <p style={{minWidth: longestLabel + 1 + 'ch',}}>{field.label??field.name}</p>
-                            <KeyValueField name={field.name} rounded={field.inputRounded??inputRoundedDefault??'rounded-xs'} />
+                            <KeyValueField
+                                name={field.name}
+                                rounded={field.inputRounded??inputRoundedDefault??'rounded-xs'}
+                                suggestedKVs={field.suggestedKVs}
+                                defaultKVs={field.defaultKVs}
+                            />
                         </div>
                     )
 
