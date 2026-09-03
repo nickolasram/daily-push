@@ -5,7 +5,7 @@ import {
     UpdateCommandOutput,
     DeleteCommand, PutCommand
 } from "@aws-sdk/lib-dynamodb";
-import {dynamoObject, PushArticle} from "@/types";
+import {defaultKVFieldValues, dynamoObject, KVRecord, KVReference, PushArticle} from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {SubmitEvent} from "react";
 import {pushFormNode} from "@/app/components/PushForm";
@@ -66,6 +66,8 @@ export abstract class PushDynamoClass {
     }
 }
 
+
+
 export class PushDynamoArticle extends PushDynamoClass{
     public articleId:string|undefined;
     public heading:string|undefined;
@@ -76,9 +78,10 @@ export class PushDynamoArticle extends PushDynamoClass{
     public publishedContent:string|undefined;
     public published:boolean;
     public lastSavedDate:string|Date|undefined;
-    public authorId:string[];
+    public adminId:string[];
     public headerImage:string|undefined;
     public formNodes:pushFormNode[];
+    public contributors:KVRecord[]|undefined;
 
     constructor();
     constructor(article?:PushArticle){
@@ -90,7 +93,7 @@ export class PushDynamoArticle extends PushDynamoClass{
         this.latestUpdatedDate = article?.latestUpdatedDate;
         this.savedContent = article?.savedContent;
         this.lastSavedDate = article?.lastSavedDate;
-        this.authorId = article?.authorId??[];
+        this.adminId = article?.adminId??[];
         this.headerImage = article?.headerImage;
         this.publishedContent = article?.publishedContent;
         this.published = article?.published??false;
@@ -98,7 +101,13 @@ export class PushDynamoArticle extends PushDynamoClass{
             { name: 'heading', type: 'text', label: 'Heading', defaultValue: this.heading},
             { name: 'subheading', type: 'text', label: 'Subheading', defaultValue: this.heading},
             { name: 'headerImage', type: 'image', label: 'Header Image', defaultValue: this.headerImage},
+            { name: 'contributors', type: 'keyValueField', label: 'Contributors', defaultKVs:article?.contributors?{defaultRecords:article.contributors,reference:[]}:undefined},
+            { name: 'content', type:'richTextField', label: 'Body', defaultValue:this.savedContent },
         ]
+    }
+
+    private handleKVs(records:Record<string,string>[]){
+
     }
 
     public setHeadingLabel(newLabel:string){
@@ -111,6 +120,68 @@ export class PushDynamoArticle extends PushDynamoClass{
 
     public hideSubheadingField():void{
         this.formNodes = this.formNodes.splice(1,1)
+    }
+
+    public hideHeaderImageField():void{
+        this.formNodes = this.formNodes.filter((formNode)=>{return formNode.name!=='headerImage';})
+    }
+
+    public setSuggestedKVs(suggestedKVs:(string|{value:string,display:string})[]){
+        const kvIndex = this.formNodes.findIndex((formNode)=>{return formNode.type=='keyValueField'})
+        this.formNodes[kvIndex]['suggestedKVs'] = suggestedKVs
+    }
+
+    public setDefaultKVs(defaultKVs:KVRecord[]){
+        const kvIndex = this.formNodes.findIndex((formNode)=>{return formNode.type=='keyValueField'})
+        if (this.formNodes[kvIndex]['defaultKVs']){
+            this.formNodes[kvIndex]['defaultKVs'].defaultRecords = defaultKVs
+        } else {
+            this.formNodes[kvIndex]['defaultKVs'] = {
+                defaultRecords:defaultKVs,
+                reference:[]
+            }
+        }
+    }
+
+    public setKVReference(reference:KVReference[]){
+        const kvIndex = this.formNodes.findIndex((formNode)=>{return formNode.type=='keyValueField'})
+        if (this.formNodes[kvIndex]['defaultKVs']){
+            this.formNodes[kvIndex]['defaultKVs'].reference = reference
+        } else {
+            this.formNodes[kvIndex]['defaultKVs'] = {
+                defaultRecords:[],
+                reference:reference
+            }
+        }
+    }
+
+    public autoIncludeUser(details:{defaultKey:string,value:string,reference:boolean}):void{
+        const kvIndex = this.formNodes.findIndex((formNode)=>{return formNode.type=='keyValueField'})
+        const userRecord:KVRecord={
+            record:{
+                key:details.defaultKey,
+                value:details.value
+            },
+            object: details.reference,
+        }
+        if (this.formNodes[kvIndex]['defaultKVs']){
+            const userAlreadyExists = this.formNodes[kvIndex]['defaultKVs']?.defaultRecords.find(
+                obj=>{return obj.record.value==details.value}
+            )
+            if (userAlreadyExists){
+                return
+            } else {
+                this.formNodes[kvIndex]['defaultKVs'].defaultRecords.push(
+                    userRecord
+                )
+            }
+        } else {
+            this.formNodes[kvIndex]['defaultKVs'] = {
+                defaultRecords:[userRecord],
+                reference:[]
+            }
+        }
+
     }
 
     public altControls(){

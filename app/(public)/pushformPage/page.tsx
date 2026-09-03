@@ -112,9 +112,9 @@ const Page=()=>{
                     const data = new FormData(e.target);
                     const kvRecord = generateKVRecord('kvf', data);
                     const kvList:[string,string][]=[];
-                    for(const k in kvRecord){
-                        kvList.push([k,kvRecord[k]]);
-                    }
+                    // for(const k in kvRecord){
+                    //     kvList.push([k,kvRecord[k]]);
+                    // }
                     const entries:[string,FormDataEntryValue][] =[...data.entries()]
                     const entriesNoHL:[string, FormDataEntryValue][] = entries.filter(
                         (entry)=>(
@@ -136,10 +136,10 @@ const Page=()=>{
                                     return (
                                         <div key={i}>
                                             <p>Credits from KeyValueField</p>
-                                            {(entry[1] as unknown as [string,string][]).map((entry:[string,string],j:number)=>{
-                                              return <div key={j} className={'flex gap-5'}><p>{entry[0]}</p><p>{entry[1]}</p></div>
-                                            })
-                                            }
+                                            {/*{(entry[1] as unknown as [string,string][]).map((entry:[string,string],j:number)=>{*/}
+                                            {/*  return <div key={j} className={'flex gap-5'}><p>{entry[0]}</p><p>{entry[1]}</p></div>*/}
+                                            {/*})*/}
+                                            {/*}*/}
                                         </div>
                                     )
                                 } else {

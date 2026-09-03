@@ -41,7 +41,27 @@ export interface PushArticle {
     publishedContent:string|undefined;
     published:boolean;
     lastSavedDate:string|Date|undefined;
-    authorId:string[];
+    adminId:string[];
     headerImage:string|undefined;
-    objectType:'article'
+    objectType:'article';
+    contributors:KVRecord[];
+}
+
+export interface KVRecord{
+    record:
+        {
+            key:string,
+            value:string
+        },
+    object:boolean
+}
+
+export interface KVReference{
+    value:string,
+    display:string
+}
+
+export interface defaultKVFieldValues{
+    defaultRecords: KVRecord[],
+    reference: KVReference[]
 }
