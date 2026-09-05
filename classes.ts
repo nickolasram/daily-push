@@ -5,7 +5,7 @@ import {
     UpdateCommandOutput,
     DeleteCommand, PutCommand
 } from "@aws-sdk/lib-dynamodb";
-import {defaultKVFieldValues, dynamoObject, KVRecord, KVReference, PushArticle} from "@/types";
+import {providedKVFieldValues, dynamoObject, KVRecord, KVReference, PushArticle, suggestKVFieldValue} from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {SubmitEvent} from "react";
 import {pushFormNode} from "@/app/components/PushForm";
@@ -101,7 +101,7 @@ export class PushDynamoArticle extends PushDynamoClass{
             { name: 'heading', type: 'text', label: 'Heading', defaultValue: this.heading},
             { name: 'subheading', type: 'text', label: 'Subheading', defaultValue: this.heading},
             { name: 'headerImage', type: 'image', label: 'Header Image', defaultValue: this.headerImage},
-            { name: 'contributors', type: 'keyValueField', label: 'Contributors', defaultKVs:article?.contributors?{defaultRecords:article.contributors,reference:[]}:undefined},
+            { name: 'contributors', type: 'keyValueField', label: 'Contributors', providedKVs:article?.contributors?{defaultRecords:article.contributors,reference:[]}:undefined},
             { name: 'content', type:'richTextField', label: 'Body', defaultValue:this.savedContent },
         ]
     }
@@ -126,18 +126,18 @@ export class PushDynamoArticle extends PushDynamoClass{
         this.formNodes = this.formNodes.filter((formNode)=>{return formNode.name!=='headerImage';})
     }
 
-    public setSuggestedKVs(suggestedKVs:(string|{value:string,display:string})[]){
+    public setSuggestedKVs(suggestedKVs:suggestKVFieldValue[]){
         const kvIndex = this.formNodes.findIndex((formNode)=>{return formNode.type=='keyValueField'})
         this.formNodes[kvIndex]['suggestedKVs'] = suggestedKVs
     }
 
-    public setDefaultKVs(defaultKVs:KVRecord[]){
+    public setDefaultKVs(providedKVs:KVRecord[]){
         const kvIndex = this.formNodes.findIndex((formNode)=>{return formNode.type=='keyValueField'})
-        if (this.formNodes[kvIndex]['defaultKVs']){
-            this.formNodes[kvIndex]['defaultKVs'].defaultRecords = defaultKVs
+        if (this.formNodes[kvIndex]['providedKVs']){
+            this.formNodes[kvIndex]['providedKVs'].defaultRecords = providedKVs
         } else {
-            this.formNodes[kvIndex]['defaultKVs'] = {
-                defaultRecords:defaultKVs,
+            this.formNodes[kvIndex]['providedKVs'] = {
+                defaultRecords:providedKVs,
                 reference:[]
             }
         }
@@ -145,10 +145,10 @@ export class PushDynamoArticle extends PushDynamoClass{
 
     public setKVReference(reference:KVReference[]){
         const kvIndex = this.formNodes.findIndex((formNode)=>{return formNode.type=='keyValueField'})
-        if (this.formNodes[kvIndex]['defaultKVs']){
-            this.formNodes[kvIndex]['defaultKVs'].reference = reference
+        if (this.formNodes[kvIndex]['providedKVs']){
+            this.formNodes[kvIndex]['providedKVs'].reference = reference
         } else {
-            this.formNodes[kvIndex]['defaultKVs'] = {
+            this.formNodes[kvIndex]['providedKVs'] = {
                 defaultRecords:[],
                 reference:reference
             }
@@ -158,25 +158,24 @@ export class PushDynamoArticle extends PushDynamoClass{
     public autoIncludeUser(details:{defaultKey:string,value:string,reference:boolean}):void{
         const kvIndex = this.formNodes.findIndex((formNode)=>{return formNode.type=='keyValueField'})
         const userRecord:KVRecord={
-            record:{
-                key:details.defaultKey,
-                value:details.value
-            },
+            key:details.defaultKey,
+            value:details.value,
             object: details.reference,
+            hidden:false
         }
-        if (this.formNodes[kvIndex]['defaultKVs']){
-            const userAlreadyExists = this.formNodes[kvIndex]['defaultKVs']?.defaultRecords.find(
-                obj=>{return obj.record.value==details.value}
+        if (this.formNodes[kvIndex]['providedKVs']){
+            const userAlreadyExists = this.formNodes[kvIndex]['providedKVs']?.defaultRecords.find(
+                obj=>{return obj.value==details.value}
             )
             if (userAlreadyExists){
                 return
             } else {
-                this.formNodes[kvIndex]['defaultKVs'].defaultRecords.push(
+                this.formNodes[kvIndex]['providedKVs'].defaultRecords.push(
                     userRecord
                 )
             }
         } else {
-            this.formNodes[kvIndex]['defaultKVs'] = {
+            this.formNodes[kvIndex]['providedKVs'] = {
                 defaultRecords:[userRecord],
                 reference:[]
             }

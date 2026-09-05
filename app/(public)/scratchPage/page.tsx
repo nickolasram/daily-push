@@ -2,9 +2,9 @@
 import PushForm, {generateKVRecord, pushFormNode} from "@/app/components/PushForm";
 import {SubmitEvent} from "react";
 import {PushDynamoArticle} from "@/classes";
-import {defaultKVFieldValues} from "@/types";
+import {providedKVFieldValues, KVRecord, KVReference, suggestKVFieldValue} from "@/types";
 
-const usersReference = [
+const usersReference:KVReference[] = [
     { display:'Admin',
         value:'1245a',
     },
@@ -12,23 +12,21 @@ const usersReference = [
         value:'1245ab',
     }
 ]
-const KVs = [
+const KVs:KVRecord[] = [
     {
-        record:{
-            key: 'Author',
-            value: '1245a',
-    },
-        object:true
+        key: 'Author',
+        value: '1245a',
+        object:true,
+        hidden:true
     },
     {
-        record:{
-            key: 'Research',
-            value: 'Michael',
-        },
-        object:false
+        key: 'Research',
+        value: 'Michael',
+        object:false,
+        hidden:false
     }
 ]
-const suggestedKVs=[
+const suggestedKVs:suggestKVFieldValue[]=[
     'Marcus',
     {
         value:'122nf',
@@ -40,7 +38,8 @@ export default function Page(){
     const scratchArticle = new PushDynamoArticle();
     scratchArticle.setDefaultKVs(KVs);
     scratchArticle.setKVReference(usersReference)
-    scratchArticle.autoIncludeUser({defaultKey:'[placeholder]',value:'1245ab',reference:true})
+    scratchArticle.autoIncludeUser({defaultKey:'[username]',value:'1245ab',reference:true})
+    scratchArticle.setSuggestedKVs(suggestedKVs)
     const formNodes:pushFormNode[] = scratchArticle.formNodes
 
     const altControls = scratchArticle.altControls()
@@ -50,6 +49,7 @@ export default function Page(){
         const data = new FormData(event.target);
         const name = 'contributors'
         const kvs = generateKVRecord(name,data)
+        console.log(kvs)
     }
 
     return (
