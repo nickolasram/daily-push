@@ -48,12 +48,10 @@ export interface PushArticle {
 }
 
 export interface KVRecord{
-    record:
-        {
-            key:string,
-            value:string
-        },
-    object:boolean
+    key:string,
+    value:string,
+    object:boolean,
+    hidden:boolean,
 }
 
 export interface KVReference{
@@ -61,7 +59,9 @@ export interface KVReference{
     display:string
 }
 
-export interface defaultKVFieldValues{
+export interface providedKVFieldValues{
     defaultRecords: KVRecord[],
     reference: KVReference[]
 }
+
+export type suggestKVFieldValue = string | {value:string,display:string}
