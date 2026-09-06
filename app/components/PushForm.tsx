@@ -1,14 +1,29 @@
 'use client'
 import {Fragment, ReactNode, RefObject, SubmitEvent, useEffect, useReducer, useRef, useState} from "react";
-import {Field, Input, Label, Textarea, Checkbox, Legend, Fieldset, Radio, RadioGroup, Button} from '@headlessui/react'
+import {
+    Field,
+    Input,
+    Label,
+    Textarea,
+    Checkbox,
+    Legend,
+    Fieldset,
+    Radio,
+    RadioGroup,
+    Button,
+    Popover, PopoverButton, PopoverPanel
+} from '@headlessui/react'
 import TextEditor from "@/app/components/textEditor/TextEditor";
 import {KVRecord, providedKVFieldValues} from "@/types";
 
 interface keyValueBlockProps {
     name: string,
-    providedKV?:KVRecord,
+    providedKV:KVRecord,
     suggestedKVs?:(string|{value:string,display:string})[],
-    reference?:{value:string,display:string}[]
+    reference?:{value:string,display:string}[],
+    deleteRecord:(record:KVRecord) => void,
+    indexInKVArray:number,
+    updateArray:(index:number,object:KVRecord)=>void
 }
 
 export function generateKVRecord(name:string, formData:FormData) {
@@ -31,27 +46,22 @@ export function generateKVRecord(name:string, formData:FormData) {
     return returnedRecords;
 }
 
-const KeyValueBlock=({name,providedKV,suggestedKVs,reference}:keyValueBlockProps)=>{
-    let defaultDisplay = '';
-    if(providedKV){
+const KeyValueBlock=({name,indexInKVArray,updateArray,providedKV,suggestedKVs,reference,deleteRecord}:keyValueBlockProps)=>{
+    const getDisplayName=()=>{
         if(providedKV.object){
-            const referencedObject = reference?.find(obj=> {
+            const filteredSuggestions=suggestedKVs?.filter(obj=>{return typeof obj != 'string'})
+            const referencedObject = [...reference??[],...filteredSuggestions??[]]?.find(obj=> {
                 return obj.value == providedKV.value
             })
             if(referencedObject){
-                defaultDisplay = referencedObject.display
+                return referencedObject.display
             } else {
-                defaultDisplay = '[User not found]'
+                return '[User not found]'
             }
         } else {
-            defaultDisplay = providedKV.value
+            return providedKV.value
         }
     }
-    const [keyValue, setKeyValue] = useState<string>(providedKV?providedKV.key:"[empty]")
-    const [valueValue, setValueValue] = useState<string>(providedKV?providedKV.value:"[empty]")
-    const [valueDisplay,setValueDisplay] = useState<string>(defaultDisplay)
-    const [objectBoolean,setObjectBoolean] = useState<boolean>(providedKV?.object??false)
-    const [hidden, setHidden] = useState<boolean>(providedKV?providedKV.hidden:false)
     const [matchingValues,setMatchingValues]=useState<(string|{display:string,value:string})[]>([])
     const [hoveringSuggestions,setHoveringSuggestions]=useState<boolean>(false)
     const handleChange=(input:string)=>{
@@ -81,61 +91,41 @@ const KeyValueBlock=({name,providedKV,suggestedKVs,reference}:keyValueBlockProps
         >
             <div className={'w-60 flex'}>
                 <div className={'w-fit flex flex-col grow-0 border-r-1 border-black'}>
-                    <input className={'hidden size-0'} type={'checkbox'} name={name+'Key'} value={keyValue} defaultChecked={true} readOnly={true} />
-                    {providedKV ?
-                        <input value={keyValue} className={'border-black w-45 border-b-1'} type={'text'}
-                               onChange={(e)=> {
-                                   setKeyValue(e.target.value)
-                               }}
-                        /> :
-                        <input placeholder={'key'} className={'border-black w-45 border-b-1'} type={'text'}
-                               onChange={(e)=> {
-                                   setKeyValue(e.target.value)
-                               }}
-                        />
-                    }
-                    <input className={'hidden size-0'} type={'checkbox'} name={name+'Value'} value={valueValue} defaultChecked={true} readOnly={true} />
-                    { providedKV ?
-                        <input className={'w-45 backdrop-brightness-95'} type={'text'} value={valueDisplay}
-                               onChange={(e)=> {
-                                   setValueValue(e.target.value);
-                                   setValueDisplay(e.target.value);
-                                   if (suggestedKVs) {
-                                       handleChange(e.target.value)
-                                   }
-                                }
+                    <input className={'hidden size-0'} type={'checkbox'} name={name+'Key'} value={providedKV.key} defaultChecked={true} readOnly={true} />
+                    <input placeholder={'key'} value={providedKV.key} className={'border-black w-45 border-b-1'} type={'text'}
+                           onChange={(e)=> {
+                               const newValue = {...providedKV,key:e.target.value}
+                               updateArray(indexInKVArray,newValue)
+                           }}
+                    />
+                    <input className={'hidden size-0'} type={'checkbox'} name={name+'Value'} value={providedKV.value} defaultChecked={true} readOnly={true} />
+                    <input placeholder={'value'} className={'w-45 backdrop-brightness-95'} type={'text'} value={getDisplayName()}
+                           onChange={(e)=> {
+                               if (suggestedKVs) {
+                                   handleChange(e.target.value)
                                }
-                               onFocus={()=>{
-                                   if (valueDisplay.length > 0) {
-                                       handleChange(valueDisplay)
-                                   }
-                               }}
-                        />    :
-                        <input placeholder={'value'} className={'w-45 backdrop-brightness-95'} type={'text'} value={valueDisplay}
-                               onChange={(e)=> {
-                                   setValueValue(e.target.value);
-                                   setValueDisplay(e.target.value);
-                                   if (suggestedKVs) {
-                                       handleChange(e.target.value)
-                                   }
+                               const newValue = {...providedKV,value:e.target.value}
+                               updateArray(indexInKVArray,newValue)
+                            }
+                           }
+                           onFocus={()=>{
+                               if (providedKV.value.length > 0) {
+                                   handleChange(providedKV.value)
                                }
-                               }
-                               onFocus={()=>{
-                                   if (valueDisplay.length > 0) {
-                                       handleChange(valueDisplay)
-                                   }
-                               }}
-                        />
-                    }
-                    <input className={'hidden size-0'} type={'checkbox'} name={name+'Object'} value={valueValue+'Object'} checked={objectBoolean} readOnly={true} />
-                    <input className={'hidden size-0'} type={'checkbox'} name={name+'Hidden'} value={valueValue+'Hidden'} checked={hidden} readOnly={true} />
+                           }}
+                    />
+                    <input className={'hidden size-0'} type={'checkbox'} name={name+'Object'} value={providedKV.value+'Object'} checked={providedKV.object} readOnly={true} />
+                    <input className={'hidden size-0'} type={'checkbox'} name={name+'Hidden'} value={providedKV.value+'Hidden'} checked={providedKV.hidden} readOnly={true} />
                 </div>
                 <div className={'grow flex items-center justify-around'}>
                     <Button
                         className={'border-none'}
-                        onClick={() => {setHidden(!hidden)}}
+                        onClick={() => {
+                            updateArray(indexInKVArray,{...providedKV, hidden: !providedKV.hidden})
+                        }
+                    }
                     >
-                        { !hidden ?
+                        { !providedKV.hidden ?
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-5">
                                 <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
                                 <path fillRule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z" clipRule="evenodd" />
@@ -147,9 +137,25 @@ const KeyValueBlock=({name,providedKV,suggestedKVs,reference}:keyValueBlockProps
                             </svg>
                         }
                     </Button>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-5">
-                        <path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clipRule="evenodd" />
-                    </svg>
+                    <Popover className={'size-6'} as={'div'}>
+                        <PopoverButton className={'p-0 border-none'}>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-5">
+                                <path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clipRule="evenodd" />
+                            </svg>
+                        </PopoverButton>
+                        <PopoverPanel className={'border fixed bg-red-900 rounded-sm'} anchor={'bottom'}>
+                            {({ close }) =>(
+                                <Button
+                                    onClick={()=> {
+                                        deleteRecord(providedKV)
+                                        close()
+                                    }}
+                                >
+                                    Delete ?
+                                </Button>
+                            )}
+                        </PopoverPanel>
+                    </Popover>
 
                 </div>
             </div>
@@ -171,15 +177,11 @@ const KeyValueBlock=({name,providedKV,suggestedKVs,reference}:keyValueBlockProps
                                 className={'text-left cursor-pointer border-0 bg-white hover:bg-gray-300 focus:bg-gray-300 last-of-type:border-b-0 border-b-1 w-full'}
                                 onClick={()=> {
                                     if (typeof v==="string"){
-                                        setValueValue(v)
-                                        setValueDisplay(v)
-                                        setObjectBoolean(false)
+                                        updateArray(indexInKVArray,{...providedKV,value:v,object:false})
                                         setHoveringSuggestions(false)
                                         setMatchingValues([])
                                     } else {
-                                        setValueValue(v.value)
-                                        setValueDisplay(v.display)
-                                        setObjectBoolean(true)
+                                        updateArray(indexInKVArray,{...providedKV,value:v.value,object:true})
                                         setHoveringSuggestions(false)
                                         setMatchingValues([])
                                     }
@@ -204,30 +206,35 @@ interface keyValueFieldProps {
 }
 
 const KeyValueField=({name,rounded,providedKVs,suggestedKVs}:keyValueFieldProps)=>{
-    const [blockCount,setBlockCount]=useState(providedKVs?0:1)
+    const [KVRecords,setKVRecords]=useState<KVRecord[]>(!providedKVs||providedKVs.defaultRecords.length==1?[{value:'',key:'',hidden:true,object:false}]:providedKVs.defaultRecords)
+    const deleteKVRecord=(record:KVRecord)=>{
+        const filtered = KVRecords.filter(obj=> {
+            return obj != record
+        })
+        setKVRecords([...filtered])
+    }
+    const updateArray=(index:number,object:KVRecord)=>{
+        setKVRecords(KVRecords.toSpliced(index,1,object))
+    }
     return (
         <div className={`flex flex-col border w-fit ${rounded}`}>
-            {providedKVs && providedKVs.defaultRecords.length > 0 &&
-                <>
-                    {providedKVs.defaultRecords.map((_,i)=>{
-                        return(
-                            <KeyValueBlock name={name} key={i} providedKV={_} suggestedKVs={suggestedKVs} reference={providedKVs.reference} />
-                        )
-                    })
-                    }
-                </>
-            }
-            <>
-                {[...Array(blockCount)].map((_,i)=>{
-                    return(
-                        <KeyValueBlock name={name} key={i} suggestedKVs={suggestedKVs} />
-                    )
-                })
-                }
-            </>
+            {KVRecords.map((_,i)=>{
+                return(
+                    <KeyValueBlock
+                        deleteRecord={deleteKVRecord}
+                        name={name}
+                        key={i}
+                        providedKV={_}
+                        suggestedKVs={suggestedKVs}
+                        reference={providedKVs?.reference}
+                        indexInKVArray={i}
+                        updateArray={updateArray}
+                    />
+                )
+            })}
             <Button
                 type='button'
-                onClick={()=>setBlockCount(blockCount+1)}
+                onClick={()=>setKVRecords([...KVRecords,{value:'',key:'',hidden:true,object:false}])}
                 className={'border-none flex gap-2 items-center'}
             >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
