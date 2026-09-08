@@ -55,13 +55,31 @@ export interface KVRecord{
 }
 
 export interface KVReference{
-    value:string,
-    display:string
+    value:string;
+    display:string;
 }
 
 export interface providedKVFieldValues{
-    defaultRecords: KVRecord[],
+    defaultRecords: KVRecord[];
     reference: KVReference[]
 }
 
 export type suggestKVFieldValue = string | {value:string,display:string}
+
+export interface ListFieldEntry{
+    value:string;
+    object:boolean;
+    hidden:boolean;
+}
+
+export interface ListReference{
+    value:string;
+    display:string;
+}
+
+export interface providedListFieldValues{
+    defaultEntries:ListFieldEntry[];
+    reference:ListReference[];
+}
+
+export type suggestListFieldValue = string | {value:string,display:string}
