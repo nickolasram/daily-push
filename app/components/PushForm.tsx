@@ -14,13 +14,197 @@ import {
     Popover, PopoverButton, PopoverPanel
 } from '@headlessui/react'
 import TextEditor from "@/app/components/textEditor/TextEditor";
-import {KVRecord, providedKVFieldValues} from "@/types";
+import {
+    KVRecord,
+    KVReference,
+    ListFieldEntry,
+    ListReference,
+    providedKVFieldValues, providedListFieldValues,
+    suggestKVFieldValue, suggestListFieldValue
+} from "@/types";
+
+interface ListFieldProps {
+    name: string;
+    providedEntry:ListFieldEntry;
+    suggestedEntries?: suggestListFieldValue[];
+    reference?:ListReference[];
+    deleteEntry:(entry:ListFieldEntry) => void;
+    indexInList:number;
+    updateArray:(index:number,object:ListFieldEntry)=>void
+}
+
+export function generateListFieldValues(name:string,formData:FormData):ListFieldEntry[] {
+    const returnedValues:ListFieldEntry[] = [];
+    const entryValues = formData.getAll(name+'Value') as [string];
+    const entriesObject = formData.getAll(name+'Object') as [string];
+    const entriesHidden = formData.getAll(name+'Hidden') as [string];
+    const listLength = entryValues.length;
+    for(let i=0;i<listLength;i++){
+        returnedValues.push(
+            {
+                value:entryValues[i],
+                object:entriesObject.includes(entryValues[i]+'Object'),
+                hidden: entriesHidden.includes(entriesHidden[i]+'Hidden')
+            }
+        )
+    }
+    return returnedValues;
+}
+
+const ListFieldBlock=({
+                          name,
+                          providedEntry,
+                          suggestedEntries,
+                          reference,
+                          deleteEntry,
+                          indexInList,
+                          updateArray
+}:ListFieldProps) => {
+    const getDisplayName=():string=>{
+        if (providedEntry.object){
+            const filteredSuggestions=suggestedEntries?.filter(obj=>{return typeof obj != 'string'})
+            const referencedObject = [...reference??[],...filteredSuggestions??[]]?.find(obj=> {
+                return obj.value == providedEntry.value
+            })
+            if(referencedObject){
+                return referencedObject.display
+            } else {
+                return '[User not found]'
+            }
+        } else {
+            return providedEntry.value
+        }
+    }
+    const [matchingValues,setMatchingValues]=useState<suggestListFieldValue[]>([])
+    const [hoveringSuggestions,setHoveringSuggestions]=useState<boolean>(false)
+    const handleChange=(input:string)=>{
+        if(input?.length==0){
+            setMatchingValues([])
+        } else {
+            const regexValue = input + '.*'
+            const re = new RegExp(regexValue, 'i')
+            setMatchingValues(suggestedEntries!.filter(ptv=> {
+                    if (typeof ptv === "string") {
+                        return re.test(ptv)
+                    } else {
+                        return re.test(ptv.display)
+                    }
+                }
+            ))
+        }
+    }
+    // TODO: Make more flexible width
+    return (
+        <div className={'flex flex-col items-stretch border-black border-b-1 relative'}
+             onBlur={()=>{
+                 if (!hoveringSuggestions) {
+                     setMatchingValues([])
+                 }
+             }}>
+            <div className={'w-60 flex'}>
+                <input className={'hidden size-0'} type={'checkbox'} name={name+'Value'} value={providedEntry.value} defaultChecked={true} readOnly={true} />
+                <input placeholder={'entry'} className={'border-black w-45 border-b-1'} type={'text'} value={getDisplayName()}
+                       onChange={(e)=> {
+                           if (suggestedEntries) {
+                               handleChange(e.target.value)
+                           }
+                           const newValue = {...providedEntry,value:e.target.value}
+                           updateArray(indexInList,newValue)
+                       }
+                       }
+                       onFocus={()=>{
+                           if (providedEntry.value.length > 0) {
+                               handleChange(providedEntry.value)
+                           }
+                       }}
+                />
+                <input className={'hidden size-0'} type={'checkbox'} name={name+'Object'} value={providedEntry.value+'Object'} checked={providedEntry.object} readOnly={true} />
+                <input className={'hidden size-0'} type={'checkbox'} name={name+'Hidden'} value={providedEntry.value+'Hidden'} checked={providedEntry.hidden} readOnly={true} />
+            </div>
+            <div className={'grow flex items-center justify-around'}>
+                <Button
+                    className={'border-none'}
+                    onClick={() => {
+                        updateArray(indexInList,{...providedEntry, hidden: !providedEntry.hidden})
+                    }
+                    }
+                >
+                    { !providedEntry.hidden ?
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-5">
+                            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                            <path fillRule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z" clipRule="evenodd" />
+                        </svg>:
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-5">
+                            <path d="M3.53 2.47a.75.75 0 0 0-1.06 1.06l18 18a.75.75 0 1 0 1.06-1.06l-18-18ZM22.676 12.553a11.249 11.249 0 0 1-2.631 4.31l-3.099-3.099a5.25 5.25 0 0 0-6.71-6.71L7.759 4.577a11.217 11.217 0 0 1 4.242-.827c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113Z" />
+                            <path d="M15.75 12c0 .18-.013.357-.037.53l-4.244-4.243A3.75 3.75 0 0 1 15.75 12ZM12.53 15.713l-4.243-4.244a3.75 3.75 0 0 0 4.244 4.243Z" />
+                            <path d="M6.75 12c0-.619.107-1.213.304-1.764l-3.1-3.1a11.25 11.25 0 0 0-2.63 4.31c-.12.362-.12.752 0 1.114 1.489 4.467 5.704 7.69 10.675 7.69 1.5 0 2.933-.294 4.242-.827l-2.477-2.477A5.25 5.25 0 0 1 6.75 12Z" />
+                        </svg>
+                    }
+                </Button>
+                <Popover className={'size-6'} as={'div'}>
+                    <PopoverButton className={'p-0 border-none'}>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-5">
+                            <path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clipRule="evenodd" />
+                        </svg>
+                    </PopoverButton>
+                    <PopoverPanel className={'border fixed bg-red-900 rounded-sm'} anchor={'bottom'}>
+                        {({ close }) =>(
+                            <Button
+                                onClick={()=> {
+                                    deleteEntry(providedEntry)
+                                    close()
+                                }}
+                            >
+                                Delete ?
+                            </Button>
+                        )}
+                    </PopoverPanel>
+                </Popover>
+            </div>
+            { matchingValues?.length > 0 &&
+                <div className={'z-10 absolute top-[100%] w-full border-black border-2 left-3  bg-white'}
+                     onMouseOver={()=>{setHoveringSuggestions(true)}}
+                     onMouseLeave={()=>{setHoveringSuggestions(false)}}
+                >
+                    { matchingValues.map((v,i)=>{
+                        let display:string;
+                        if (typeof v==="string"){
+                            display=v
+                        }else{
+                            display=v.display
+                        }
+                        return (
+                            <Button
+                                key={i}
+                                className={'text-left cursor-pointer border-0 bg-white hover:bg-gray-300 focus:bg-gray-300 last-of-type:border-b-0 border-b-1 w-full'}
+                                onClick={()=> {
+                                    if (typeof v==="string"){
+                                        updateArray(indexInList,{...providedEntry,value:v,object:false})
+                                        setHoveringSuggestions(false)
+                                        setMatchingValues([])
+                                    } else {
+                                        updateArray(indexInList,{...providedEntry,value:v.value,object:true})
+                                        setHoveringSuggestions(false)
+                                        setMatchingValues([])
+                                    }
+                                }}
+                            >
+                                {display}
+                            </Button>
+                        )
+                    })
+                    }
+                </div>
+            }
+        </div>
+    )
+}
 
 interface keyValueBlockProps {
     name: string,
     providedKV:KVRecord,
-    suggestedKVs?:(string|{value:string,display:string})[],
-    reference?:{value:string,display:string}[],
+    suggestedKVs?:suggestKVFieldValue[],
+    reference?:KVReference[],
     deleteRecord:(record:KVRecord) => void,
     indexInKVArray:number,
     updateArray:(index:number,object:KVRecord)=>void
@@ -46,6 +230,54 @@ export function generateKVRecord(name:string, formData:FormData) {
     return returnedRecords;
 }
 
+interface listFieldColumnProps{
+    name: string;
+    rounded:'rounded-xs'|'rounded-sm'|'rounded-md'|'rounded-lg'|'rounded-xl'|string;
+    providedEntries?:providedListFieldValues;
+    suggestedEntries?:suggestListFieldValue[];
+}
+
+const ListColumnField=({name,rounded,providedEntries,suggestedEntries}:listFieldColumnProps)=>{
+    const [listEntries,setListEntries]=useState<ListFieldEntry[]>(!providedEntries||providedEntries.defaultEntries.length==1?[{value:'',hidden:true,object:false}]:providedEntries.defaultEntries);
+    const deleteListEntry=(entry:ListFieldEntry)=>{
+        const filtered=listEntries.filter(obj=>{
+            return obj != entry;
+        })
+        setListEntries([...filtered])
+    }
+    const updateArray=(index:number,object:ListFieldEntry)=>{
+        setListEntries(listEntries.toSpliced(index,1,object))
+    }
+    return(
+        <div className={`flex flex-col border w-fit ${rounded}`}>
+            {listEntries.map((_,i)=>{
+                return(
+                    <ListFieldBlock
+                        deleteEntry={deleteListEntry}
+                        name={name}
+                        key={i}
+                        providedEntry={_}
+                        suggestedEntries={suggestedEntries}
+                        reference={providedEntries?.reference}
+                        indexInList={i}
+                        updateArray={updateArray}
+                    />
+                )
+            })}
+            <Button
+                type='button'
+                onClick={()=>setListEntries([...listEntries,{value:'',hidden:true,object:false}])}
+                className={'border-none flex gap-2 items-center'}
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
+                    <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clipRule="evenodd" />
+                </svg>
+                <p className={'text-sm text-gray-900'}>Add Entry</p>
+            </Button>
+        </div>
+    )
+}
+
 const KeyValueBlock=({name,indexInKVArray,updateArray,providedKV,suggestedKVs,reference,deleteRecord}:keyValueBlockProps)=>{
     const getDisplayName=()=>{
         if(providedKV.object){
@@ -62,7 +294,7 @@ const KeyValueBlock=({name,indexInKVArray,updateArray,providedKV,suggestedKVs,re
             return providedKV.value
         }
     }
-    const [matchingValues,setMatchingValues]=useState<(string|{display:string,value:string})[]>([])
+    const [matchingValues,setMatchingValues]=useState<suggestKVFieldValue[]>([])
     const [hoveringSuggestions,setHoveringSuggestions]=useState<boolean>(false)
     const handleChange=(input:string)=>{
         if(input?.length==0){
@@ -156,7 +388,6 @@ const KeyValueBlock=({name,indexInKVArray,updateArray,providedKV,suggestedKVs,re
                             )}
                         </PopoverPanel>
                     </Popover>
-
                 </div>
             </div>
             { matchingValues?.length > 0 &&
@@ -199,10 +430,10 @@ const KeyValueBlock=({name,indexInKVArray,updateArray,providedKV,suggestedKVs,re
 }
 
 interface keyValueFieldProps {
-    name: string,
-    rounded:'rounded-xs'|'rounded-sm'|'rounded-md'|'rounded-lg'|'rounded-xl'|string,
-    providedKVs?:providedKVFieldValues,
-    suggestedKVs?:(string|{value:string,display:string})[],
+    name: string;
+    rounded:'rounded-xs'|'rounded-sm'|'rounded-md'|'rounded-lg'|'rounded-xl'|string;
+    providedKVs?:providedKVFieldValues;
+    suggestedKVs?:suggestKVFieldValue[];
 }
 
 const KeyValueField=({name,rounded,providedKVs,suggestedKVs}:keyValueFieldProps)=>{
@@ -327,22 +558,24 @@ const TagForm = ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
 // TODO: Make ID optional (defaulting to name) and label mandatory
 // TODO: allow default options
 export interface pushFormNode {
-    defaultCheckedIndex?:number,
-    id?: string,
-    inputRounded?: 'rounded-none' | 'rounded-xs' | 'rounded-sm' | 'rounded-md' | 'rounded-lg' | 'rounded-xl' | string,
-    label?: string,
-    labelPlacement?: 'column' | 'row',
-    max?: number,
-    min?: number,
-    name: string,
-    node?: ReactNode,
-    options?:Array<{ value:string, label:string, defaultChecked?:boolean }>,
-    tags?: {display:string,value:string}[],
-    type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags' | 'listColumn',
-    defaultValue?: string | number,
-    defaultTags?: string[],
-    providedKVs?:providedKVFieldValues,
-    suggestedKVs?:(string|{value:string,display:string})[],
+    defaultCheckedIndex?:number;
+    id?: string;
+    inputRounded?: 'rounded-none' | 'rounded-xs' | 'rounded-sm' | 'rounded-md' | 'rounded-lg' | 'rounded-xl' | string;
+    label?: string;
+    labelPlacement?: 'column' | 'row';
+    max?: number;
+    min?: number;
+    name: string;
+    node?: ReactNode;
+    options?:Array<{ value:string, label:string, defaultChecked?:boolean }>;
+    tags?: {display:string,value:string}[];
+    type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags' | 'listColumn';
+    defaultValue?: string | number;
+    defaultTags?: string[];
+    providedKVs?:providedKVFieldValues;
+    suggestedKVs?:suggestKVFieldValue[];
+    suggestedListFieldValues?:suggestListFieldValue[];
+    providedListFieldEntries?:providedListFieldValues;
 //     placeholder
 //     default
 //     onChange
@@ -479,7 +712,23 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                         </div>
                     )
 
-                } else if(field.type == 'textArea'){
+                }
+                else if(field.type == 'listColumn'){
+                    return(
+                        <div key={i} className="flex"
+                             style={{flexDirection:field.labelPlacement??labelPlacementDefault??'column'}}>
+                            <p style={{minWidth: longestLabel + 1 + 'ch',}}>{field.label??field.name}</p>
+                            <ListColumnField
+                                name={field.name}
+                                rounded={field.inputRounded??inputRoundedDefault??'rounded-xs'}
+                                suggestedEntries={field.suggestedListFieldValues}
+                                providedEntries={field.providedListFieldEntries}
+                            />
+                        </div>
+                    )
+
+                }
+                else if(field.type == 'textArea'){
                     return(
                         <Field key={i} className="flex"
                                style={{flexDirection:field.labelPlacement??labelPlacementDefault??'column'}}>
