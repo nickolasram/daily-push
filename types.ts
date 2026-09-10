@@ -41,7 +41,8 @@ export interface PushArticle {
     publishedContent:string|undefined;
     published:boolean;
     lastSavedDate:string|Date|undefined;
-    adminId:string[];
+    formSettings: articleFormSettings;
+    adminSettings: articleAdminSetting[];
     headerImage:string|undefined;
     objectType:'article';
     contributors:KVRecord[];
@@ -54,14 +55,9 @@ export interface KVRecord{
     hidden:boolean,
 }
 
-export interface KVReference{
+export interface listAndKVReference{
     value:string;
     display:string;
-}
-
-export interface providedKVFieldValues{
-    defaultRecords: KVRecord[];
-    reference: KVReference[]
 }
 
 export type suggestKVFieldValue = string | {value:string,display:string}
@@ -72,14 +68,20 @@ export interface ListFieldEntry{
     hidden:boolean;
 }
 
-export interface ListReference{
-    value:string;
-    display:string;
-}
-
-export interface providedListFieldValues{
-    defaultEntries:ListFieldEntry[];
-    reference:ListReference[];
-}
-
 export type suggestListFieldValue = string | {value:string,display:string}
+
+export interface articleAdminSetting{
+    id: string,
+    permission: 'creator'|'admin'|'editor'|'reviewer',
+    reference:boolean
+}
+
+export interface articleFormSettings{
+    headingLabel?:string;
+    subheadingLabel?:string;
+    hideSubheading?:boolean;
+    hideHeaderImage?:boolean;
+    suggestedKVs?:suggestKVFieldValue[];
+    providedKVs?:KVRecord[];
+    kvReference?:listAndKVReference[];
+}

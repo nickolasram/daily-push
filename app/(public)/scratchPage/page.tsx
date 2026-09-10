@@ -1,10 +1,11 @@
 "use client"
-import PushForm, {generateKVRecord, pushFormNode} from "@/app/components/PushForm";
+import {generateKVRecord, pushFormNode} from "@/app/components/PushForm";
 import {SubmitEvent} from "react";
 import {PushDynamoArticle} from "@/classes";
-import {providedKVFieldValues, KVRecord, KVReference, suggestKVFieldValue} from "@/types";
+import {listAndKVReference, KVRecord, suggestKVFieldValue} from "@/types";
+import {ArticleForm} from "@/app/components/articleElements";
 
-const usersReference:KVReference[] = [
+const usersReference:listAndKVReference[] = [
     { display:'Admin',
         value:'1245a',
     },
@@ -35,15 +36,13 @@ const suggestedKVs:suggestKVFieldValue[]=[
 ]
 
 export default function Page(){
-    const scratchArticle = new PushDynamoArticle();
-    scratchArticle.setDefaultKVs(KVs);
-    scratchArticle.setKVReference(usersReference)
-    scratchArticle.autoIncludeUser({defaultKey:'[username]',value:'1245ab',reference:true})
-    scratchArticle.setSuggestedKVs(suggestedKVs)
+    const scratchArticle = new PushDynamoArticle('Username');
+    scratchArticle.setFormSettings({
+        suggestedKVs:suggestedKVs,
+        kvReference:usersReference,
+        providedKVs:KVs
+    })
     const formNodes:pushFormNode[] = scratchArticle.formNodes
-
-    const altControls = scratchArticle.altControls()
-
     const handleSubmit = (event:SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
         const data = new FormData(event.target);
@@ -54,7 +53,7 @@ export default function Page(){
 
     return (
         <div>
-            <PushForm fields={formNodes} onSubmit={handleSubmit} altControls={altControls()} />
+            <ArticleForm fields={formNodes} onSubmit={handleSubmit} />
         </div>
     )
 }

@@ -5,11 +5,16 @@ import {
     UpdateCommandOutput,
     DeleteCommand, PutCommand
 } from "@aws-sdk/lib-dynamodb";
-import {providedKVFieldValues, dynamoObject, KVRecord, KVReference, PushArticle, suggestKVFieldValue} from "@/types";
+import {
+    dynamoObject,
+    KVRecord,
+    PushArticle,
+    suggestKVFieldValue,
+    articleFormSettings, articleAdminSetting, listAndKVReference, ListFieldEntry
+} from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {SubmitEvent} from "react";
 import {pushFormNode} from "@/app/components/PushForm";
-import ArticleControls from "@/app/components/articleControls";
 
 export abstract class PushDynamoClass {
 
@@ -66,8 +71,6 @@ export abstract class PushDynamoClass {
     }
 }
 
-
-
 export class PushDynamoArticle extends PushDynamoClass{
     public articleId:string|undefined;
     public heading:string|undefined;
@@ -78,113 +81,110 @@ export class PushDynamoArticle extends PushDynamoClass{
     public publishedContent:string|undefined;
     public published:boolean;
     public lastSavedDate:string|Date|undefined;
-    public adminId:string[];
     public headerImage:string|undefined;
     public formNodes:pushFormNode[];
+    public adminFormNodes:pushFormNode[];
     public contributors:KVRecord[]|undefined;
+    public formSettings: articleFormSettings;
+    public adminSettings: articleAdminSetting[];
 
-    constructor();
-    constructor(article?:PushArticle){
+    constructor(arg1:PushArticle|string);
+    constructor(arg1:PushArticle|string,
+                arg2?:boolean); // if values in both admin list and contributors list are either references or not
+    constructor(arg1:PushArticle|string,
+                arg2?:boolean, // if values in admin list can be references but not in contributors list and vice versa. arg 2 is for the admin list
+                SmartKVReference?:boolean) {
         super();
-        this.articleId = article?.articleId;
-        this.heading = article?.heading;
-        this.subheading = article?.subheading;
-        this.firstPublishedDate = article?.firstPublishedDate;
-        this.latestUpdatedDate = article?.latestUpdatedDate;
-        this.savedContent = article?.savedContent;
-        this.lastSavedDate = article?.lastSavedDate;
-        this.adminId = article?.adminId??[];
-        this.headerImage = article?.headerImage;
-        this.publishedContent = article?.publishedContent;
-        this.published = article?.published??false;
+        let provided:KVRecord[];
+        let KVReference:boolean;
+        if (SmartKVReference) {
+            KVReference = SmartKVReference;
+        } else KVReference = !!arg2;
+        if (typeof arg1 == 'string') {
+            this.published = false;
+            this.adminSettings = [{
+                id: arg1,
+                permission:'creator',
+                reference:!!arg2
+            }]
+            const defaultUser:KVRecord = {
+                key:'Author',
+                value:arg1,
+                hidden:false,
+                object:KVReference
+            }
+            provided = [defaultUser]
+            this.formSettings = {}
+        } else {
+            this.articleId = arg1.articleId;
+            this.heading = arg1.heading;
+            this.subheading = arg1.subheading;
+            this.firstPublishedDate = arg1.firstPublishedDate;
+            this.latestUpdatedDate = arg1.latestUpdatedDate;
+            this.savedContent = arg1.savedContent;
+            this.lastSavedDate = arg1.lastSavedDate;
+            this.adminSettings = arg1.adminSettings;
+            this.formSettings = arg1.formSettings;
+            this.headerImage = arg1.headerImage;
+            this.publishedContent = arg1.publishedContent;
+            this.published = arg1.published;
+            this.formSettings = arg1.formSettings;
+            provided = arg1.contributors
+        }
+        const contributorNode:pushFormNode = {
+            name: 'contributors',
+            type: 'keyValueField',
+            label: 'Contributors',
+            providedKVs:provided
+        }
         this.formNodes = [
             { name: 'heading', type: 'text', label: 'Heading', defaultValue: this.heading},
             { name: 'subheading', type: 'text', label: 'Subheading', defaultValue: this.heading},
             { name: 'headerImage', type: 'image', label: 'Header Image', defaultValue: this.headerImage},
-            { name: 'contributors', type: 'keyValueField', label: 'Contributors', providedKVs:article?.contributors?{defaultRecords:article.contributors,reference:[]}:undefined},
+            contributorNode,
             { name: 'content', type:'richTextField', label: 'Body', defaultValue:this.savedContent },
+        ]
+        const adminSettingsAsLFEntries:ListFieldEntry[] = this.adminSettings.map(o=>{
+            return {
+                value:o.id,
+                object:o.reference,
+                hidden:false
+            }
+        })
+        this.adminFormNodes = [
+            { name:'admins', type: 'listColumn', label: 'Access', providedListFieldEntries: adminSettingsAsLFEntries}
         ]
     }
 
-    private handleKVs(records:Record<string,string>[]){
-
+    private setContributorsReference(reference:listAndKVReference[]):void{
+        const kvNode = this.formNodes.find((formNode)=>{return formNode.name==='contributors';});
+        kvNode!.KVReference = reference;
     }
 
-    public setHeadingLabel(newLabel:string){
-        this.formNodes[0].label = newLabel;
-    }
-
-    public setSubheadingLabel(newLabel:string){
-        this.formNodes[1].label = newLabel;
-    }
-
-    public hideSubheadingField():void{
-        this.formNodes = this.formNodes.splice(1,1)
-    }
-
-    public hideHeaderImageField():void{
-        this.formNodes = this.formNodes.filter((formNode)=>{return formNode.name!=='headerImage';})
-    }
-
-    public setSuggestedKVs(suggestedKVs:suggestKVFieldValue[]){
+    private setSuggestedKVs(suggestedKVs:suggestKVFieldValue[]){
         const kvIndex = this.formNodes.findIndex((formNode)=>{return formNode.type=='keyValueField'})
         this.formNodes[kvIndex]['suggestedKVs'] = suggestedKVs
     }
 
-    public setDefaultKVs(providedKVs:KVRecord[]){
+    private setDefaultKVs(providedKVs:KVRecord[]){
         const kvIndex = this.formNodes.findIndex((formNode)=>{return formNode.type=='keyValueField'})
-        if (this.formNodes[kvIndex]['providedKVs']){
-            this.formNodes[kvIndex]['providedKVs'].defaultRecords = providedKVs
-        } else {
-            this.formNodes[kvIndex]['providedKVs'] = {
-                defaultRecords:providedKVs,
-                reference:[]
-            }
-        }
+        this.formNodes[kvIndex]['providedKVs'] = providedKVs
     }
 
-    public setKVReference(reference:KVReference[]){
-        const kvIndex = this.formNodes.findIndex((formNode)=>{return formNode.type=='keyValueField'})
-        if (this.formNodes[kvIndex]['providedKVs']){
-            this.formNodes[kvIndex]['providedKVs'].reference = reference
-        } else {
-            this.formNodes[kvIndex]['providedKVs'] = {
-                defaultRecords:[],
-                reference:reference
-            }
+    public setFormSettings(settings:articleFormSettings){
+        this.formSettings = {
+            ...this.adminSettings,
+            ...settings
         }
-    }
-
-    public autoIncludeUser(details:{defaultKey:string,value:string,reference:boolean}):void{
-        const kvIndex = this.formNodes.findIndex((formNode)=>{return formNode.type=='keyValueField'})
-        const userRecord:KVRecord={
-            key:details.defaultKey,
-            value:details.value,
-            object: details.reference,
-            hidden:false
+        if (settings.providedKVs){
+            this.setDefaultKVs(settings.providedKVs);
         }
-        if (this.formNodes[kvIndex]['providedKVs']){
-            const userAlreadyExists = this.formNodes[kvIndex]['providedKVs']?.defaultRecords.find(
-                obj=>{return obj.value==details.value}
-            )
-            if (userAlreadyExists){
-                return
-            } else {
-                this.formNodes[kvIndex]['providedKVs'].defaultRecords.push(
-                    userRecord
-                )
-            }
-        } else {
-            this.formNodes[kvIndex]['providedKVs'] = {
-                defaultRecords:[userRecord],
-                reference:[]
-            }
+        if (settings.kvReference){
+            this.setContributorsReference(settings.kvReference);
         }
-
-    }
-
-    public altControls(){
-        return ArticleControls
+        if (settings.suggestedKVs){
+            this.setSuggestedKVs(settings.suggestedKVs);
+        }
     }
 
     public getControlValue(event:SubmitEvent<HTMLFormElement>):'save'|'publish'{
