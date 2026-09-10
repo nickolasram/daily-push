@@ -16,10 +16,8 @@ import {
 import TextEditor from "@/app/components/textEditor/TextEditor";
 import {
     KVRecord,
-    KVReference,
     ListFieldEntry,
-    ListReference,
-    providedKVFieldValues, providedListFieldValues,
+    listAndKVReference,
     suggestKVFieldValue, suggestListFieldValue
 } from "@/types";
 
@@ -27,7 +25,7 @@ interface ListFieldProps {
     name: string;
     providedEntry:ListFieldEntry;
     suggestedEntries?: suggestListFieldValue[];
-    reference?:ListReference[];
+    reference?:listAndKVReference[];
     deleteEntry:(entry:ListFieldEntry) => void;
     indexInList:number;
     updateArray:(index:number,object:ListFieldEntry)=>void
@@ -204,7 +202,7 @@ interface keyValueBlockProps {
     name: string,
     providedKV:KVRecord,
     suggestedKVs?:suggestKVFieldValue[],
-    reference?:KVReference[],
+    reference?:listAndKVReference[],
     deleteRecord:(record:KVRecord) => void,
     indexInKVArray:number,
     updateArray:(index:number,object:KVRecord)=>void
@@ -233,12 +231,13 @@ export function generateKVRecord(name:string, formData:FormData) {
 interface listFieldColumnProps{
     name: string;
     rounded:'rounded-xs'|'rounded-sm'|'rounded-md'|'rounded-lg'|'rounded-xl'|string;
-    providedEntries?:providedListFieldValues;
+    providedEntries?:ListFieldEntry[];
     suggestedEntries?:suggestListFieldValue[];
+    reference?:listAndKVReference[];
 }
 
-const ListColumnField=({name,rounded,providedEntries,suggestedEntries}:listFieldColumnProps)=>{
-    const [listEntries,setListEntries]=useState<ListFieldEntry[]>(!providedEntries||providedEntries.defaultEntries.length==1?[{value:'',hidden:true,object:false}]:providedEntries.defaultEntries);
+const ListColumnField=({name,rounded,providedEntries,suggestedEntries,reference}:listFieldColumnProps)=>{
+    const [listEntries,setListEntries]=useState<ListFieldEntry[]>(!providedEntries||providedEntries.length==1?[{value:'',hidden:true,object:false}]:providedEntries);
     const deleteListEntry=(entry:ListFieldEntry)=>{
         const filtered=listEntries.filter(obj=>{
             return obj != entry;
@@ -258,7 +257,7 @@ const ListColumnField=({name,rounded,providedEntries,suggestedEntries}:listField
                         key={i}
                         providedEntry={_}
                         suggestedEntries={suggestedEntries}
-                        reference={providedEntries?.reference}
+                        reference={reference}
                         indexInList={i}
                         updateArray={updateArray}
                     />
@@ -432,12 +431,13 @@ const KeyValueBlock=({name,indexInKVArray,updateArray,providedKV,suggestedKVs,re
 interface keyValueFieldProps {
     name: string;
     rounded:'rounded-xs'|'rounded-sm'|'rounded-md'|'rounded-lg'|'rounded-xl'|string;
-    providedKVs?:providedKVFieldValues;
+    providedKVs?:KVRecord[];
     suggestedKVs?:suggestKVFieldValue[];
+    reference?:listAndKVReference[];
 }
 
-const KeyValueField=({name,rounded,providedKVs,suggestedKVs}:keyValueFieldProps)=>{
-    const [KVRecords,setKVRecords]=useState<KVRecord[]>(!providedKVs||providedKVs.defaultRecords.length==1?[{value:'',key:'',hidden:true,object:false}]:providedKVs.defaultRecords)
+const KeyValueField=({name,rounded,providedKVs,suggestedKVs,reference}:keyValueFieldProps)=>{
+    const [KVRecords,setKVRecords]=useState<KVRecord[]>(!providedKVs||providedKVs.length==1?[{value:'',key:'',hidden:true,object:false}]:providedKVs)
     const deleteKVRecord=(record:KVRecord)=>{
         const filtered = KVRecords.filter(obj=> {
             return obj != record
@@ -457,7 +457,7 @@ const KeyValueField=({name,rounded,providedKVs,suggestedKVs}:keyValueFieldProps)
                         key={i}
                         providedKV={_}
                         suggestedKVs={suggestedKVs}
-                        reference={providedKVs?.reference}
+                        reference={reference}
                         indexInKVArray={i}
                         updateArray={updateArray}
                     />
@@ -572,10 +572,12 @@ export interface pushFormNode {
     type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags' | 'listColumn';
     defaultValue?: string | number;
     defaultTags?: string[];
-    providedKVs?:providedKVFieldValues;
+    providedKVs?:KVRecord[];
     suggestedKVs?:suggestKVFieldValue[];
     suggestedListFieldValues?:suggestListFieldValue[];
-    providedListFieldEntries?:providedListFieldValues;
+    providedListFieldEntries?:ListFieldEntry[];
+    KVReference?:listAndKVReference[];
+    listFieldReference?:listAndKVReference[];
 //     placeholder
 //     default
 //     onChange
@@ -708,6 +710,7 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                                 rounded={field.inputRounded??inputRoundedDefault??'rounded-xs'}
                                 suggestedKVs={field.suggestedKVs}
                                 providedKVs={field.providedKVs}
+                                reference={field.KVReference}
                             />
                         </div>
                     )
@@ -723,6 +726,7 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                                 rounded={field.inputRounded??inputRoundedDefault??'rounded-xs'}
                                 suggestedEntries={field.suggestedListFieldValues}
                                 providedEntries={field.providedListFieldEntries}
+                                reference={field.listFieldReference}
                             />
                         </div>
                     )
