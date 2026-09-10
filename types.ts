@@ -85,3 +85,8 @@ export interface articleFormSettings{
     providedKVs?:KVRecord[];
     kvReference?:listAndKVReference[];
 }
+
+export interface articleAdminSettings{
+    reference?:listAndKVReference[];
+    suggested?:suggestListFieldValue[];
+}

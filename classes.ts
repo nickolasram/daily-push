@@ -10,7 +10,7 @@ import {
     KVRecord,
     PushArticle,
     suggestKVFieldValue,
-    articleFormSettings, articleAdminSetting, listAndKVReference, ListFieldEntry
+    articleFormSettings, articleAdminSetting, listAndKVReference, ListFieldEntry, articleAdminSettings
 } from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {SubmitEvent} from "react";
@@ -100,6 +100,7 @@ export class PushDynamoArticle extends PushDynamoClass{
         if (SmartKVReference) {
             KVReference = SmartKVReference;
         } else KVReference = !!arg2;
+        let creatorValue:string;
         if (typeof arg1 == 'string') {
             this.published = false;
             this.adminSettings = [{
@@ -107,6 +108,7 @@ export class PushDynamoArticle extends PushDynamoClass{
                 permission:'creator',
                 reference:!!arg2
             }]
+            creatorValue = arg1
             const defaultUser:KVRecord = {
                 key:'Author',
                 value:arg1,
@@ -130,6 +132,8 @@ export class PushDynamoArticle extends PushDynamoClass{
             this.published = arg1.published;
             this.formSettings = arg1.formSettings;
             provided = arg1.contributors
+            const creatorSetting = arg1.adminSettings.find(obj=>{return obj.permission == 'creator'})
+            creatorValue = creatorSetting!.id
         }
         const contributorNode:pushFormNode = {
             name: 'contributors',
@@ -144,15 +148,44 @@ export class PushDynamoArticle extends PushDynamoClass{
             contributorNode,
             { name: 'content', type:'richTextField', label: 'Body', defaultValue:this.savedContent },
         ]
-        const adminSettingsAsLFEntries:ListFieldEntry[] = this.adminSettings.map(o=>{
-            return {
-                value:o.id,
-                object:o.reference,
-                hidden:false
+        const admins:ListFieldEntry[] = [];
+        const editors:ListFieldEntry[] = [];
+        const reviewers:ListFieldEntry[] = [];
+        for (const user of this.adminSettings) {
+            if (user.permission=='admin'){
+                admins.push({value:user.id,object:user.reference,hidden:false});
             }
-        })
+            if (user.permission=='editor'){
+                editors.push({value:user.id,object:user.reference,hidden:false});
+            }
+            if (user.permission=='reviewer'){
+                reviewers.push({value:user.id,object:user.reference,hidden:false});
+            }
+        }
         this.adminFormNodes = [
-            { name:'admins', type: 'listColumn', label: 'Access', providedListFieldEntries: adminSettingsAsLFEntries}
+            {
+              name:'',
+              type:'note',
+              defaultValue: 'Created by '+creatorValue
+            },
+            {
+                name:'admins',
+                type: 'listColumn',
+                label: 'Admins',
+                providedListFieldEntries: admins
+            },
+            {
+                name:'editors',
+                type: 'listColumn',
+                label: 'Editors',
+                providedListFieldEntries: editors
+            },
+            {
+                name:'reviewers',
+                type: 'listColumn',
+                label: 'Reviewers',
+                providedListFieldEntries: reviewers
+            },
         ]
     }
 
@@ -184,6 +217,26 @@ export class PushDynamoArticle extends PushDynamoClass{
         }
         if (settings.suggestedKVs){
             this.setSuggestedKVs(settings.suggestedKVs);
+        }
+    }
+
+    public setAdminSettings(settings:articleAdminSettings):void{
+        for (const node of this.adminFormNodes) {
+            if (node.type == 'note') {
+                const creatorSetting = this.adminSettings.find(obj=>{return obj.permission == 'creator'})
+                if (creatorSetting!.reference){
+                    const creatorDisplay = settings.reference?.find(obj=>{return obj.value == creatorSetting!.id})
+                    if (creatorDisplay){
+                        node.defaultValue = 'Created by '+ creatorDisplay.display
+                    } else {
+                        node.defaultValue = 'Created by [User Not Found]'
+                    }
+                }
+            }
+            if (node.type == 'listColumn') {
+                node.listFieldReference = settings.reference;
+                node.suggestedListFieldValues = settings.suggested;
+            }
         }
     }
 

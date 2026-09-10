@@ -93,33 +93,31 @@ const ListFieldBlock=({
     }
     // TODO: Make more flexible width
     return (
-        <div className={'flex flex-col items-stretch border-black border-b-1 relative'}
+        <div className={'flex items-stretch border-black border-b-1 relative'}
              onBlur={()=>{
                  if (!hoveringSuggestions) {
                      setMatchingValues([])
                  }
              }}>
-            <div className={'w-60 flex'}>
-                <input className={'hidden size-0'} type={'checkbox'} name={name+'Value'} value={providedEntry.value} defaultChecked={true} readOnly={true} />
-                <input placeholder={'entry'} className={'border-black w-45 border-b-1'} type={'text'} value={getDisplayName()}
-                       onChange={(e)=> {
-                           if (suggestedEntries) {
-                               handleChange(e.target.value)
-                           }
-                           const newValue = {...providedEntry,value:e.target.value}
-                           updateArray(indexInList,newValue)
+            <input className={'hidden size-0'} type={'checkbox'} name={name+'Value'} value={providedEntry.value} defaultChecked={true} readOnly={true} />
+            <input placeholder={'entry'} className={'border-black w-45 border-r-1'} type={'text'} value={getDisplayName()}
+                   onChange={(e)=> {
+                       if (suggestedEntries) {
+                           handleChange(e.target.value)
                        }
+                       const newValue = {...providedEntry,value:e.target.value}
+                       updateArray(indexInList,newValue)
+                   }
+                   }
+                   onFocus={()=>{
+                       if (providedEntry.value.length > 0) {
+                           handleChange(providedEntry.value)
                        }
-                       onFocus={()=>{
-                           if (providedEntry.value.length > 0) {
-                               handleChange(providedEntry.value)
-                           }
-                       }}
-                />
-                <input className={'hidden size-0'} type={'checkbox'} name={name+'Object'} value={providedEntry.value+'Object'} checked={providedEntry.object} readOnly={true} />
-                <input className={'hidden size-0'} type={'checkbox'} name={name+'Hidden'} value={providedEntry.value+'Hidden'} checked={providedEntry.hidden} readOnly={true} />
-            </div>
-            <div className={'grow flex items-center justify-around'}>
+                   }}
+            />
+            <input className={'hidden size-0'} type={'checkbox'} name={name+'Object'} value={providedEntry.value+'Object'} checked={providedEntry.object} readOnly={true} />
+            <input className={'hidden size-0'} type={'checkbox'} name={name+'Hidden'} value={providedEntry.value+'Hidden'} checked={providedEntry.hidden} readOnly={true} />
+            <div className={'flex items-center justify-around'}>
                 <Button
                     className={'border-none'}
                     onClick={() => {
@@ -237,7 +235,7 @@ interface listFieldColumnProps{
 }
 
 const ListColumnField=({name,rounded,providedEntries,suggestedEntries,reference}:listFieldColumnProps)=>{
-    const [listEntries,setListEntries]=useState<ListFieldEntry[]>(!providedEntries||providedEntries.length==1?[{value:'',hidden:true,object:false}]:providedEntries);
+    const [listEntries,setListEntries]=useState<ListFieldEntry[]>(!providedEntries||providedEntries.length==0?[{value:'',hidden:true,object:false}]:providedEntries);
     const deleteListEntry=(entry:ListFieldEntry)=>{
         const filtered=listEntries.filter(obj=>{
             return obj != entry;
@@ -437,7 +435,7 @@ interface keyValueFieldProps {
 }
 
 const KeyValueField=({name,rounded,providedKVs,suggestedKVs,reference}:keyValueFieldProps)=>{
-    const [KVRecords,setKVRecords]=useState<KVRecord[]>(!providedKVs||providedKVs.length==1?[{value:'',key:'',hidden:true,object:false}]:providedKVs)
+    const [KVRecords,setKVRecords]=useState<KVRecord[]>(!providedKVs||providedKVs.length==0?[{value:'',key:'',hidden:true,object:false}]:providedKVs)
     const deleteKVRecord=(record:KVRecord)=>{
         const filtered = KVRecords.filter(obj=> {
             return obj != record
@@ -569,7 +567,7 @@ export interface pushFormNode {
     node?: ReactNode;
     options?:Array<{ value:string, label:string, defaultChecked?:boolean }>;
     tags?: {display:string,value:string}[];
-    type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags' | 'listColumn';
+    type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags' | 'listColumn' | 'note';
     defaultValue?: string | number;
     defaultTags?: string[];
     providedKVs?:KVRecord[];
@@ -699,6 +697,9 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                 }
                 else if(field.type == 'custom' && field.node){
                         return <Fragment key={i}>{field.node}</Fragment>
+                }
+                else if(field.type == 'note'){
+                    return <p key={i}>{field.defaultValue??''}</p>
                 }
                 else if(field.type == 'keyValueField'){
                     return(

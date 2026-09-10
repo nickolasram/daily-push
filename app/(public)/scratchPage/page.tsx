@@ -1,9 +1,9 @@
 "use client"
-import {generateKVRecord, pushFormNode} from "@/app/components/PushForm";
+import {generateKVRecord} from "@/app/components/PushForm";
 import {SubmitEvent} from "react";
 import {PushDynamoArticle} from "@/classes";
 import {listAndKVReference, KVRecord, suggestKVFieldValue} from "@/types";
-import {ArticleForm} from "@/app/components/articleElements";
+import ArticleForm from "@/app/components/articleElements";
 
 const usersReference:listAndKVReference[] = [
     { display:'Admin',
@@ -36,13 +36,13 @@ const suggestedKVs:suggestKVFieldValue[]=[
 ]
 
 export default function Page(){
-    const scratchArticle = new PushDynamoArticle('Username');
+    const scratchArticle = new PushDynamoArticle('1245a',true);
     scratchArticle.setFormSettings({
         suggestedKVs:suggestedKVs,
         kvReference:usersReference,
         providedKVs:KVs
     })
-    const formNodes:pushFormNode[] = scratchArticle.formNodes
+    scratchArticle.setAdminSettings({reference:usersReference,suggested:suggestedKVs})
     const handleSubmit = (event:SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
         const data = new FormData(event.target);
@@ -53,7 +53,12 @@ export default function Page(){
 
     return (
         <div>
-            <ArticleForm fields={formNodes} onSubmit={handleSubmit} />
+            <ArticleForm
+                fields={scratchArticle.formNodes}
+                onSubmit={handleSubmit}
+                settingFields={scratchArticle.adminFormNodes}
+                onSettingsSubmit={handleSubmit}
+            />
         </div>
     )
 }
