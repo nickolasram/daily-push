@@ -36,19 +36,18 @@ const suggestedKVs:suggestKVFieldValue[]=[
 ]
 
 export default function Page(){
-    const scratchArticle = new PushDynamoArticle('1245a',true);
+    const scratchArticle = new PushDynamoArticle('1245a');
     scratchArticle.setFormSettings({
         suggestedKVs:suggestedKVs,
         kvReference:usersReference,
-        providedKVs:KVs
     })
     scratchArticle.setAdminSettings({reference:usersReference,suggested:suggestedKVs})
     const handleSubmit = (event:SubmitEvent<HTMLFormElement>) => {
-        event.preventDefault()
-        const data = new FormData(event.target);
-        const name = 'contributors'
-        const kvs = generateKVRecord(name,data)
-        console.log(kvs)
+        scratchArticle.handleSubmit(event)
+        // const controlValue = scratchArticle.getControlValue(event)
+        // const name = 'contributors'
+        // const kvs = generateKVRecord(name,data)
+        // console.log(kvs)
     }
 
     return (

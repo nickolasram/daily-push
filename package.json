@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1081.0",
+    "@aws-sdk/client-s3": "^3.1131.0",
     "@aws-sdk/lib-dynamodb": "^3.1081.0",
     "@aws-sdk/util-dynamodb": "^3.996.5",
     "@headlessui/react": "^2.2.10",
@@ -35,6 +36,7 @@
     "react-calendar": "^6.0.1",
     "react-dom": "19.2.4",
     "react-hot-toast": "^2.6.0",
+    "sanitize-filename": "^1.6.4",
     "tiptap": "^1.32.2",
     "tiptap-extension-resize-image": "^1.4.4",
     "uuid": "^14.0.1"
