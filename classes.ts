@@ -15,6 +15,11 @@ import {
 import {v4 as uuidv4} from "uuid";
 import {SubmitEvent} from "react";
 import {pushFormNode} from "@/app/components/PushForm";
+import {getDynamoClient} from "@/globalFunctions/functions";
+import sanitize from "sanitize-filename";
+import {
+    PutObjectCommand,
+} from "@aws-sdk/client-s3";
 
 export abstract class PushDynamoClass {
 
@@ -71,6 +76,13 @@ export abstract class PushDynamoClass {
     }
 }
 
+interface formValues{
+    heading:string;
+    subheading?:string;
+    headerImage?:string;
+    content:string;
+}
+
 export class PushDynamoArticle extends PushDynamoClass{
     public articleId:string|undefined;
     public heading:string|undefined;
@@ -87,38 +99,31 @@ export class PushDynamoArticle extends PushDynamoClass{
     public contributors:KVRecord[]|undefined;
     public formSettings: articleFormSettings;
     public adminSettings: articleAdminSetting[];
+    private authorKV:KVRecord|undefined;
 
-    constructor(arg1:PushArticle|string);
-    constructor(arg1:PushArticle|string,
-                arg2?:boolean); // if values in both admin list and contributors list are either references or not
-    constructor(arg1:PushArticle|string,
-                arg2?:boolean, // if values in admin list can be references but not in contributors list and vice versa. arg 2 is for the admin list
-                SmartKVReference?:boolean) {
+    constructor(arg1:PushArticle|string){
         super();
         let provided:KVRecord[];
-        let KVReference:boolean;
-        if (SmartKVReference) {
-            KVReference = SmartKVReference;
-        } else KVReference = !!arg2;
         let creatorValue:string;
         if (typeof arg1 == 'string') {
             this.published = false;
             this.adminSettings = [{
                 id: arg1,
                 permission:'creator',
-                reference:!!arg2
+                reference:true
             }]
             creatorValue = arg1
             const defaultUser:KVRecord = {
                 key:'Author',
                 value:arg1,
                 hidden:false,
-                object:KVReference
+                object:true
             }
+            this.authorKV = defaultUser;
             provided = [defaultUser]
             this.formSettings = {}
         } else {
-            this.articleId = arg1.articleId;
+            this.articleId = arg1.objectId;
             this.heading = arg1.heading;
             this.subheading = arg1.subheading;
             this.firstPublishedDate = arg1.firstPublishedDate;
@@ -244,69 +249,119 @@ export class PushDynamoArticle extends PushDynamoClass{
         return event.nativeEvent.submitter?.dataset['value'] as 'save'|'publish'
     }
 
+    public async handleSubmit(event:SubmitEvent<HTMLFormElement>){
+        event.preventDefault()
+        const data = new FormData(event.currentTarget);
+        //TODO: send image to database and return location
+        //TODO: send image to database and return location
+        //TODO: send image to database and return location
+        //TODO: send image to database and return location
+        //TODO: send image to database and return location
+        const file = data.get('headerImage') as File
+        let name: string = file.name;
+        name = name.replace(/\s/g, "");
+        name = sanitize(name)
+        name = uuidv4() + name
+        const bytes = await file.arrayBuffer();
+        const imageBuffer = Buffer.from(bytes);
+        const command = new PutObjectCommand({
+            Bucket: process.env.NEXT_PUBLIC_IMAGE_BUCKET,
+            Key: name,
+            Body: imageBuffer,
+        });
+        const plainObject:formValues = {
+            heading: data.get('heading')?data.get('heading') as string:'[HEADING]',
+            subheading: this.formSettings.hideSubheading?undefined:data.get('heading')?data.get('heading') as string:undefined,
+            headerImage: this.formSettings.hideHeaderImage?undefined:'',
+            content: data.get('content')?data.get('content') as string:'[BODY]',
+        }
+        const controlValue = this.getControlValue(event);
+        const dynamoClient = await getDynamoClient();
+        const tableName = process.env.NEXT_PUBLIC_TABLE_NAME as string
+        if (this.articleId) {
+            await this.post(
+                dynamoClient,
+                tableName,
+                plainObject,
+                controlValue
+            )
+        } else {
+            // TODO: PATCH
+        }
+    }
+
     public static get(client:DynamoDBDocumentClient,
                       table:string,
                       key:dynamoObject){
         return super.dynamoGet(client,table,key);
     }
 
-    public static async post(
+    private async post(
         client:DynamoDBDocumentClient,
         table:string,
-        articleId:string,
-        object:PushArticle
+        object:formValues,
+        eventType:'save'|'publish'
     ){
         let newId = uuidv4();
-        let potentialObject = await PushDynamoClass.dynamoGet(client,table,{objectType: 'article',articleId:articleId});
+        let potentialObject = await PushDynamoClass.dynamoGet(client,table,{objectType: 'article',objectId:newId});
         while(potentialObject.Item){
             newId = uuidv4();
-            potentialObject = await PushDynamoArticle.get(client,table,{objectType: 'article',articleId:articleId});
+            potentialObject = await PushDynamoArticle.get(client,table,{objectType: 'article',objectId:newId});
         }
-        const newItem:PushArticle={
-            ...object,
+        const updateTime = new Date()
+        let newArticle:PushArticle;
+        if (eventType == 'save'){
+            newArticle = {
+                heading: object.heading,
+                subheading:object.subheading,
+                headerImage:object.headerImage,
+                savedContent:object.content,
+                published:false,
+                lastSavedDate:updateTime,
+                formSettings:{
+                    headingLabel:this.formSettings.headingLabel,
+                    subheadingLabel:this.formSettings.subheadingLabel,
+                    hideSubheading:this.formSettings.hideSubheading,
+                    hideHeaderImage:this.formSettings.hideHeaderImage,
+                    providedKVs:this.formSettings.providedKVs
+                },
+                contributors:[this.authorKV as KVRecord],
+                objectId:newId,
+                adminSettings:this.adminSettings
+            }
+        } else {
+            newArticle = {
+                heading: object.heading,
+                subheading:object.subheading,
+                headerImage:object.headerImage,
+                savedContent:object.content,
+                publishedContent:object.content,
+                published:false,
+                lastSavedDate:updateTime,
+                firstPublishedDate:updateTime,
+                latestUpdatedDate:updateTime,
+                formSettings:{
+                    headingLabel:this.formSettings.headingLabel,
+                    subheadingLabel:this.formSettings.subheadingLabel,
+                    hideSubheading:this.formSettings.hideSubheading,
+                    hideHeaderImage:this.formSettings.hideHeaderImage,
+                    providedKVs:this.formSettings.providedKVs
+                },
+                contributors:[this.authorKV as KVRecord],
+                objectId:newId,
+                adminSettings:this.adminSettings
+            }
+        }
+        const newItem={
+            ...newArticle,
             objectType: 'article',
-            articleId:newId,
+            objectId:newId,
         }
         const putCommand = new PutCommand({
             TableName: table,
             Item: newItem
         })
-
         return client.send(putCommand);
-    }
-
-    public static formattedFormValues(event:SubmitEvent<HTMLFormElement>){
-        event.preventDefault();
-        const data = new FormData(event.target);
-        const tags = data.getAll('tags') as string[];
-        const title = data.get('title') as string;
-        const description = data.get('description') as string;
-        const date = data.get('date') as string;
-        const away = data.get('away') as string;
-        const sick = data.get('sick') as string;
-        return {
-            tags: tags,
-            title: title,
-            description: description,
-            date: date,
-            away: !!(away && away == 'on'),
-            sick: !!(sick && sick == 'on')
-        }
-    }
-
-    public static detectChanges(event:SubmitEvent<HTMLFormElement>,oldArticle:PushArticle,authorId:string){
-        // const formValues = PushDynamoProject.formattedFormValues(event);
-        function arraysEqual(a:string[], b:string[]) {
-            if (a === b) return true;
-            if (a == null || b == null) return false;
-            if (a.length !== b.length) return false;
-
-            for (let i = 0; i < a.length; i++) {
-                if (a[i] !== b[i]) return false;
-            }
-
-            return true;
-        }
     }
 
     public static patch(client:DynamoDBDocumentClient,
