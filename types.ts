@@ -34,7 +34,8 @@ export interface PushSortingFilterOption{
 export interface PushArticle {
     heading:string;
     subheading?:string;
-    objectId:string;
+    objectId?:string;
+    objectType?: 'article';
     firstPublishedDate?:string|Date;
     latestUpdatedDate?:string|Date;
     savedContent:string;

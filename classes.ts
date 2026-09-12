@@ -14,12 +14,15 @@ import {
 } from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {SubmitEvent} from "react";
-import {pushFormNode} from "@/app/components/PushForm";
+import {generateKVRecord, pushFormNode} from "@/app/components/PushForm";
 import {getDynamoClient} from "@/globalFunctions/functions";
 import sanitize from "sanitize-filename";
 import {
     PutObjectCommand,
+    S3Client,
+    S3ServiceException,
 } from "@aws-sdk/client-s3";
+import {NextRequest, NextResponse} from "next/server";
 
 export abstract class PushDynamoClass {
 
@@ -76,13 +79,6 @@ export abstract class PushDynamoClass {
     }
 }
 
-interface formValues{
-    heading:string;
-    subheading?:string;
-    headerImage?:string;
-    content:string;
-}
-
 export class PushDynamoArticle extends PushDynamoClass{
     public articleId:string|undefined;
     public heading:string|undefined;
@@ -99,7 +95,6 @@ export class PushDynamoArticle extends PushDynamoClass{
     public contributors:KVRecord[]|undefined;
     public formSettings: articleFormSettings;
     public adminSettings: articleAdminSetting[];
-    private authorKV:KVRecord|undefined;
 
     constructor(arg1:PushArticle|string){
         super();
@@ -119,7 +114,7 @@ export class PushDynamoArticle extends PushDynamoClass{
                 hidden:false,
                 object:true
             }
-            this.authorKV = defaultUser;
+            this.contributors = [defaultUser];
             provided = [defaultUser]
             this.formSettings = {}
         } else {
@@ -252,42 +247,34 @@ export class PushDynamoArticle extends PushDynamoClass{
     public async handleSubmit(event:SubmitEvent<HTMLFormElement>){
         event.preventDefault()
         const data = new FormData(event.currentTarget);
-        //TODO: send image to database and return location
-        //TODO: send image to database and return location
-        //TODO: send image to database and return location
-        //TODO: send image to database and return location
-        //TODO: send image to database and return location
-        const file = data.get('headerImage') as File
-        let name: string = file.name;
-        name = name.replace(/\s/g, "");
-        name = sanitize(name)
-        name = uuidv4() + name
-        const bytes = await file.arrayBuffer();
-        const imageBuffer = Buffer.from(bytes);
-        const command = new PutObjectCommand({
-            Bucket: process.env.NEXT_PUBLIC_IMAGE_BUCKET,
-            Key: name,
-            Body: imageBuffer,
-        });
-        const plainObject:formValues = {
-            heading: data.get('heading')?data.get('heading') as string:'[HEADING]',
-            subheading: this.formSettings.hideSubheading?undefined:data.get('heading')?data.get('heading') as string:undefined,
-            headerImage: this.formSettings.hideHeaderImage?undefined:'',
-            content: data.get('content')?data.get('content') as string:'[BODY]',
+        const controlValue = this.getControlValue(event)
+        data.append('controlValue', controlValue)
+        if (this.formSettings.hideSubheading){
+            data.append('hideSubheading', 'true')
         }
-        const controlValue = this.getControlValue(event);
-        const dynamoClient = await getDynamoClient();
-        const tableName = process.env.NEXT_PUBLIC_TABLE_NAME as string
-        if (this.articleId) {
-            await this.post(
-                dynamoClient,
-                tableName,
-                plainObject,
-                controlValue
-            )
-        } else {
-            // TODO: PATCH
+        if (this.formSettings.hideHeaderImage){
+            data.append('hideHeaderImage', 'true')
         }
+        const settingsString = JSON.stringify(
+            {
+                headingLabel:this.formSettings.headingLabel,
+                subheadingLabel:this.formSettings.subheadingLabel,
+                hideSubheading:this.formSettings.hideSubheading,
+                hideHeaderImage:this.formSettings.hideHeaderImage,
+                providedKVs:this.formSettings.providedKVs
+            }
+        )
+        data.append('settings', settingsString)
+        const adminSettingsString = JSON.stringify({adminSettings:this.adminSettings})
+        data.append('adminSettings', adminSettingsString)
+        const contributors = generateKVRecord('contributors', data)
+        const contributorsString = JSON.stringify({contributors:contributors})
+        data.append('contributors', contributorsString)
+        await fetch('/api/articles',
+            {
+                method: this.articleId?'PATCH':'POST',
+                body: data
+            })
     }
 
     public static get(client:DynamoDBDocumentClient,
@@ -296,60 +283,84 @@ export class PushDynamoArticle extends PushDynamoClass{
         return super.dynamoGet(client,table,key);
     }
 
-    private async post(
-        client:DynamoDBDocumentClient,
-        table:string,
-        object:formValues,
-        eventType:'save'|'publish'
-    ){
+    public static async post(req: NextRequest){
+        const formData = await req.formData()
+        const file = formData.get('headerImage') as File|undefined
+        let imageAddress:string|undefined;
+        if (file){
+            let name: string = file.name;
+            name = name.replace(/\s/g, "");
+            name = sanitize(name)
+            name = uuidv4() + name
+            const bytes = await file.arrayBuffer();
+            const imageBuffer = Buffer.from(bytes);
+            const s3Client = new S3Client({});
+            const command = new PutObjectCommand({
+                Bucket: process.env.NEXT_PUBLIC_IMAGE_BUCKET,
+                Key: name,
+                Body: imageBuffer,
+            });
+            try{
+                await s3Client.send(command);
+                const address = process.env.NEXT_PUBLIC_BUCKET_ADDRESS
+                imageAddress = address+name;
+            } catch (caught) {
+                if (
+                    caught instanceof S3ServiceException &&
+                    caught.name === "EntityTooLarge"
+                ) {
+                    console.error(
+                        `Error from S3 while uploading object to bucket. The object was too large. To upload objects larger than 5GB, use the S3 console (160GB max) or the multipart upload API (5TB max).`,
+                    );
+                } else if (caught instanceof S3ServiceException) {
+                    console.error(
+                        `Error from S3 while uploading object to bucket.  ${caught.name}: ${caught.message}`,
+                    );
+                } else {
+                    throw caught;
+                }
+            }
+        }
+        const client = await getDynamoClient()
+        const table = process.env.NEXT_PUBLIC_TABLE_NAME as string
         let newId = uuidv4();
         let potentialObject = await PushDynamoClass.dynamoGet(client,table,{objectType: 'article',objectId:newId});
         while(potentialObject.Item){
             newId = uuidv4();
             potentialObject = await PushDynamoArticle.get(client,table,{objectType: 'article',objectId:newId});
         }
-        const updateTime = new Date()
+        const updateTime = new Date().toString();
         let newArticle:PushArticle;
-        if (eventType == 'save'){
+        const controlValue = formData.get('controlValue');
+        const hideHeaderImage = !!formData.get('hideHeaderImage');
+        const hideSubheading = !!formData.get('hideSubheading');
+
+        if (controlValue == 'save'){
             newArticle = {
-                heading: object.heading,
-                subheading:object.subheading,
-                headerImage:object.headerImage,
-                savedContent:object.content,
+                heading: formData.get('heading')?formData.get('heading') as string:'[HEADING]',
+                subheading: hideSubheading?undefined:formData.get('heading')?formData.get('heading') as string:undefined,
+                headerImage: hideHeaderImage?undefined:imageAddress,
+                savedContent:formData.get('content')?formData.get('content') as string:'[BODY]',
                 published:false,
                 lastSavedDate:updateTime,
-                formSettings:{
-                    headingLabel:this.formSettings.headingLabel,
-                    subheadingLabel:this.formSettings.subheadingLabel,
-                    hideSubheading:this.formSettings.hideSubheading,
-                    hideHeaderImage:this.formSettings.hideHeaderImage,
-                    providedKVs:this.formSettings.providedKVs
-                },
-                contributors:[this.authorKV as KVRecord],
-                objectId:newId,
-                adminSettings:this.adminSettings
+                formSettings:JSON.parse(formData.get('settings') as string) as articleFormSettings,
+                contributors:JSON.parse(formData.get('contributors') as string).contributors as KVRecord[],
+                adminSettings:JSON.parse(formData.get('adminSettings') as string).adminSettings as articleAdminSetting[],
             }
         } else {
             newArticle = {
-                heading: object.heading,
-                subheading:object.subheading,
-                headerImage:object.headerImage,
-                savedContent:object.content,
-                publishedContent:object.content,
-                published:false,
+                heading: formData.get('heading')?formData.get('heading') as string:'[HEADING]',
+                subheading: hideSubheading?undefined:formData.get('heading')?formData.get('heading') as string:undefined,
+                headerImage: hideHeaderImage?undefined:imageAddress,
+                published:true,
+                savedContent:formData.get('content')?formData.get('content') as string:'[BODY]',
                 lastSavedDate:updateTime,
+                formSettings:JSON.parse(formData.get('settings') as string) as articleFormSettings,
+                contributors:JSON.parse(formData.get('contributors') as string).contributors as KVRecord[],
+                adminSettings:JSON.parse(formData.get('adminSettings') as string).adminSettings as articleAdminSetting[],
+                publishedContent:formData.get('content')?formData.get('content') as string:'[BODY]',
                 firstPublishedDate:updateTime,
                 latestUpdatedDate:updateTime,
-                formSettings:{
-                    headingLabel:this.formSettings.headingLabel,
-                    subheadingLabel:this.formSettings.subheadingLabel,
-                    hideSubheading:this.formSettings.hideSubheading,
-                    hideHeaderImage:this.formSettings.hideHeaderImage,
-                    providedKVs:this.formSettings.providedKVs
-                },
-                contributors:[this.authorKV as KVRecord],
-                objectId:newId,
-                adminSettings:this.adminSettings
             }
         }
         const newItem={
@@ -357,11 +368,16 @@ export class PushDynamoArticle extends PushDynamoClass{
             objectType: 'article',
             objectId:newId,
         }
-        const putCommand = new PutCommand({
-            TableName: table,
-            Item: newItem
-        })
-        return client.send(putCommand);
+        try {
+            const putCommand = new PutCommand({
+                TableName: table,
+                Item: newItem
+            })
+            await client.send(putCommand);
+            return NextResponse.json({success: true}, {status:200});
+        } catch (e) {
+            throw e;
+        }
     }
 
     public static patch(client:DynamoDBDocumentClient,
