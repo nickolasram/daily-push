@@ -44,10 +44,6 @@ export default function Page(){
     scratchArticle.setAdminSettings({reference:usersReference,suggested:suggestedKVs})
     const handleSubmit = (event:SubmitEvent<HTMLFormElement>) => {
         scratchArticle.handleSubmit(event)
-        // const controlValue = scratchArticle.getControlValue(event)
-        // const name = 'contributors'
-        // const kvs = generateKVRecord(name,data)
-        // console.log(kvs)
     }
 
     return (
