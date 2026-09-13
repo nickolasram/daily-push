@@ -190,7 +190,7 @@ export class PushDynamoProject extends PushDynamoClass{
         return PushDynamoClass.dynamoGet(client,'daily-push',{objectType: 'project',objectId:objectId});
     }
 
-    public static async getAllQuery(){
+    private static async getAllQuery(){
         const allProjects = new QueryCommand({
             TableName:'daily-push',
             KeyConditionExpression: 'objectType = :pr',

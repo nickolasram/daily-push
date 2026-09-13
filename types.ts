@@ -48,6 +48,16 @@ export interface PushArticle {
     contributors:KVRecord[];
 }
 
+export interface PushArticleSummary{
+    heading:string;
+    subheading?:string;
+    firstPublishedDate?:string|Date;
+    latestUpdatedDate?:string|Date;
+    publishedContent?:string;
+    headerImage?:string;
+    contributors:KVRecord[];
+}
+
 export interface KVRecord{
     key:string,
     value:string,
