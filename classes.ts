@@ -3,14 +3,19 @@ import {
     GetCommand,
     UpdateCommand,
     UpdateCommandOutput,
-    DeleteCommand, PutCommand
+    DeleteCommand, PutCommand, QueryCommand
 } from "@aws-sdk/lib-dynamodb";
 import {
     dynamoObject,
     KVRecord,
     PushArticle,
     suggestKVFieldValue,
-    articleFormSettings, articleAdminSetting, listAndKVReference, ListFieldEntry, articleAdminSettings
+    articleFormSettings,
+    articleAdminSetting,
+    listAndKVReference,
+    ListFieldEntry,
+    articleAdminSettings,
+    PushArticleSummary
 } from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {SubmitEvent} from "react";
@@ -283,6 +288,29 @@ export class PushDynamoArticle extends PushDynamoClass{
         return super.dynamoGet(client,table,key);
     }
 
+    private static async getAllPublishedQuery(){
+        const table = process.env.NEXT_PUBLIC_TABLE_NAME as string
+        const allProjects = new QueryCommand({
+            TableName:table,
+            KeyConditionExpression: 'objectType = :ar',
+            FilterExpression: 'published = :pb',
+            ExpressionAttributeValues: {
+                ':ar': 'article',
+                ':pb': true
+            },
+        })
+        const c = await getDynamoClient()
+        const q = await c.send(allProjects)
+        return q.Items??[];
+    }
+
+    public static async getAllPublishedArticles(){
+        const q = await PushDynamoArticle.getAllPublishedQuery() as PushArticle[];
+        return q.map(article => {
+            return new PushDynamoArticle(article);
+        })
+    }
+
     public static async post(req: NextRequest){
         const formData = await req.formData()
         const file = formData.get('headerImage') as File|undefined
@@ -396,5 +424,18 @@ export class PushDynamoArticle extends PushDynamoClass{
             },
             detectedChanges
         )
+    }
+
+    public plainObject():PushArticleSummary{
+        const contributors = this.formNodes.find(obj=>{return obj.name=='contributors'})?.providedKVs as KVRecord[];
+        return {
+            heading:this.heading??'[HEADING]',
+            subheading:this.subheading,
+            headerImage:this.headerImage,
+            firstPublishedDate:this.firstPublishedDate,
+            latestUpdatedDate:this.latestUpdatedDate,
+            publishedContent:this.publishedContent,
+            contributors:contributors,
+        }
     }
 }
