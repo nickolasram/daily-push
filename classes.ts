@@ -283,9 +283,9 @@ export class PushDynamoArticle extends PushDynamoClass{
     }
 
     public static get(client:DynamoDBDocumentClient,
-                      table:string,
-                      key:dynamoObject){
-        return super.dynamoGet(client,table,key);
+                      id:string){
+        const table = process.env.NEXT_PUBLIC_TABLE_NAME as string
+        return super.dynamoGet(client,table, { objectType: 'article',objectId:id});
     }
 
     private static async getAllPublishedQuery(){
@@ -352,10 +352,10 @@ export class PushDynamoArticle extends PushDynamoClass{
         const client = await getDynamoClient()
         const table = process.env.NEXT_PUBLIC_TABLE_NAME as string
         let newId = uuidv4();
-        let potentialObject = await PushDynamoClass.dynamoGet(client,table,{objectType: 'article',objectId:newId});
+        let potentialObject = await PushDynamoArticle.get(client,newId);
         while(potentialObject.Item){
             newId = uuidv4();
-            potentialObject = await PushDynamoArticle.get(client,table,{objectType: 'article',objectId:newId});
+            potentialObject = await PushDynamoArticle.get(client,newId);
         }
         const updateTime = new Date().toString();
         let newArticle:PushArticle;
@@ -426,7 +426,7 @@ export class PushDynamoArticle extends PushDynamoClass{
         )
     }
 
-    public plainObject():PushArticleSummary{
+    public plainSummary():PushArticleSummary{
         const contributors = this.formNodes.find(obj=>{return obj.name=='contributors'})?.providedKVs as KVRecord[];
         return {
             heading:this.heading??'[HEADING]',
@@ -438,4 +438,22 @@ export class PushDynamoArticle extends PushDynamoClass{
             contributors:contributors,
         }
     }
+
+    // public plainArticle():PushArticle{
+    //     const contributors = this.formNodes.find(obj=>{return obj.name=='contributors'})?.providedKVs as KVRecord[];
+    //     return {
+    //         heading:this.heading??'[HEADING]',
+    //         subheading:this.subheading,
+    //         headerImage:this.headerImage,
+    //         firstPublishedDate:this.firstPublishedDate,
+    //         latestUpdatedDate:this.latestUpdatedDate,
+    //         publishedContent:this.publishedContent,
+    //         contributors:contributors,
+    //         published:true,
+    //         savedContent:'',
+    //         lastSavedDate:'',
+    //         formSettings:this.formSettings,
+    //         adminSettings:[]
+    //     }
+    // }
 }
