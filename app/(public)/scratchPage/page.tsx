@@ -1,4 +1,4 @@
-"use client"
+"use server"
 import {generateKVRecord} from "@/app/components/PushForm";
 import {SubmitEvent} from "react";
 import {PushDynamoArticle} from "@/classes";
@@ -35,25 +35,26 @@ const suggestedKVs:suggestKVFieldValue[]=[
     }
 ]
 
-export default function Page(){
-    const scratchArticle = new PushDynamoArticle('1245a');
-    scratchArticle.setFormSettings({
-        suggestedKVs:suggestedKVs,
-        kvReference:usersReference,
-    })
-    scratchArticle.setAdminSettings({reference:usersReference,suggested:suggestedKVs})
-    const handleSubmit = (event:SubmitEvent<HTMLFormElement>) => {
-        scratchArticle.handleSubmit(event)
-    }
+export default async function Page(){
+    // const scratchArticle = new PushDynamoArticle('1245a');
+    // scratchArticle.setFormSettings({
+    //     suggestedKVs:suggestedKVs,
+    //     kvReference:usersReference,
+    // })
+    // scratchArticle.setAdminSettings({reference:usersReference,suggested:suggestedKVs})
+    // const handleSubmit = (event:SubmitEvent<HTMLFormElement>) => {
+    //     scratchArticle.handleSubmit(event)
+    // }
 
     return (
         <div>
-            <ArticleForm
-                fields={scratchArticle.formNodes}
-                onSubmit={handleSubmit}
-                settingFields={scratchArticle.adminFormNodes}
-                onSettingsSubmit={handleSubmit}
-            />
+            <p>scratch</p>
+            {/*<ArticleForm*/}
+            {/*    fields={scratchArticle.formNodes}*/}
+            {/*    onSubmit={handleSubmit}*/}
+            {/*    settingFields={scratchArticle.adminFormNodes}*/}
+            {/*    onSettingsSubmit={handleSubmit}*/}
+            {/*/>*/}
         </div>
     )
 }
