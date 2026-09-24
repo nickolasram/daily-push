@@ -5,6 +5,7 @@ import {
     UpdateCommandOutput,
     DeleteCommand, PutCommand, QueryCommand
 } from "@aws-sdk/lib-dynamodb";
+import { CognitoIdentityProviderClient, ListUsersCommand } from "@aws-sdk/client-cognito-identity-provider";
 import {
     dynamoObject,
     KVRecord,
@@ -456,4 +457,21 @@ export class PushDynamoArticle extends PushDynamoClass{
     //         adminSettings:[]
     //     }
     // }
+}
+
+export class PushCognitoClass{
+
+    public static async listAllUsers(){
+        const config = {
+            ClientId: process.env.NEXT_PUBLIC_CLIENT_ID as string,
+        }
+        const client = new CognitoIdentityProviderClient(config)
+        const input = {
+            UserPoolId: process.env.NEXT_PUBLIC_USER_POOL_ID as string,
+            AttributesToGet: ['preferred_username']
+        }
+        const command = new ListUsersCommand(input);
+        return await client.send(command);
+    }
+
 }
