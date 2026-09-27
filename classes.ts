@@ -5,7 +5,12 @@ import {
     UpdateCommandOutput,
     DeleteCommand, PutCommand, QueryCommand
 } from "@aws-sdk/lib-dynamodb";
-import { CognitoIdentityProviderClient, ListUsersCommand } from "@aws-sdk/client-cognito-identity-provider";
+import {
+    CognitoIdentityProviderClient,
+    ListGroupsCommand,
+    ListUsersCommand,
+    ListUsersInGroupCommand
+} from "@aws-sdk/client-cognito-identity-provider";
 import {
     dynamoObject,
     KVRecord,
@@ -16,7 +21,7 @@ import {
     listAndKVReference,
     ListFieldEntry,
     articleAdminSettings,
-    PushArticleSummary
+    PushArticleSummary, pushCognitoUser
 } from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {SubmitEvent} from "react";
@@ -468,10 +473,44 @@ export class PushCognitoClass{
         const client = new CognitoIdentityProviderClient(config)
         const input = {
             UserPoolId: process.env.NEXT_PUBLIC_USER_POOL_ID as string,
-            AttributesToGet: ['preferred_username']
+            AttributesToGet: [
+                'preferred_username',
+                'sub'
+            ]
         }
         const command = new ListUsersCommand(input);
         return await client.send(command);
+    }
+
+    public static async listAllUsersWithGroups(){
+        const config = {
+            ClientId: process.env.NEXT_PUBLIC_CLIENT_ID as string,
+        }
+        const input = {
+            UserPoolId: process.env.NEXT_PUBLIC_USER_POOL_ID as string,
+        }
+        const client = new CognitoIdentityProviderClient(config)
+        const command = new ListGroupsCommand(input);
+        const groups = await client.send(command) as {Groups:{GroupName:string}[]};
+        const users = []
+        for (const group of groups.Groups){
+            const groupInput = {
+                UserPoolId: process.env.NEXT_PUBLIC_USER_POOL_ID as string,
+                GroupName: group.GroupName
+            }
+            const groupCommand = new ListUsersInGroupCommand(groupInput);
+            const returnedUsersObject = await client.send(groupCommand);
+            const returnedUsersArray = returnedUsersObject.Users
+            for (const user of returnedUsersArray??[]){
+                users.push(
+                    {
+                        user: user,
+                        group:group.GroupName
+                    } as pushCognitoUser
+                );
+            }
+        }
+        return users;
     }
 
 }

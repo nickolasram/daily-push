@@ -1,4 +1,7 @@
 import {pushFormNode} from "@/app/components/PushForm";
+import {
+    UserType
+} from "@aws-sdk/client-cognito-identity-provider";
 
 export interface PushProject {
     objectType: 'project',
@@ -107,4 +110,9 @@ export interface simpleArticleFormSettings{
 export interface articleAdminSettings{
     reference?:listAndKVReference[];
     suggested?:suggestListFieldValue[];
+}
+
+export interface pushCognitoUser{
+    user:UserType,
+    group:string,
 }
