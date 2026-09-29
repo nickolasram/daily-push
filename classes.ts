@@ -9,7 +9,7 @@ import {
     CognitoIdentityProviderClient,
     ListGroupsCommand,
     ListUsersCommand,
-    ListUsersInGroupCommand
+    ListUsersInGroupCommand, UserType
 } from "@aws-sdk/client-cognito-identity-provider";
 import {
     dynamoObject,
@@ -506,11 +506,10 @@ export class PushCognitoClass{
                     {
                         user: user,
                         group:group.GroupName
-                    } as pushCognitoUser
+                    }
                 );
             }
         }
         return users;
     }
-
 }
