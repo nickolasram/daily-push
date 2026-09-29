@@ -1,7 +1,7 @@
 "use server"
 
 import {PushCognitoClass} from "@/classes";
-import UserPreviewForAdmin from "@/app/(private)/admin/components/userPreviewForAdmin";
+import UsersClientWrapper from "@/app/(private)/admin/components/usersClientWrapper";
 
 export default async function UsersServerWrapper(){
     const users = await PushCognitoClass.listAllUsersWithGroups()
@@ -11,10 +11,7 @@ export default async function UsersServerWrapper(){
                 <p>Username</p>
                 <p>Role</p>
             </div>
-            { users.map((user,i)=>{
-                return <UserPreviewForAdmin user={user} key={i} />
-            })
-            }
+            <UsersClientWrapper users={users} />
         </div>
     )
 }
