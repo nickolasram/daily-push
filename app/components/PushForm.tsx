@@ -553,6 +553,72 @@ const TagForm = ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
     )
 }
 
+interface passwordFieldProps{
+    defaultShow:boolean,
+    labelPlacement?: 'column' | 'row';
+    labelPlacementDefault?: 'column' | 'row',
+    longestLabel:number,
+    name:string,
+    label?:string,
+    inputClassNameDefault:string,
+    id?:string,
+    defaultValue?:string|number,
+}
+const PasswordField=(
+    {
+        defaultShow,
+        labelPlacement,
+        labelPlacementDefault,
+        longestLabel,
+        name,
+        label,
+        inputClassNameDefault,
+        id,
+        defaultValue,
+    }:passwordFieldProps
+)=>{
+    const [passwordShow, setPasswordShow] = useState<boolean>(defaultShow);
+    return (
+        <Field
+            className={'flex'}
+            style={{flexDirection:labelPlacement??labelPlacementDefault??'column'}}
+        >
+             <Label
+                 style={{minWidth: longestLabel + 1 + 'ch',}}
+             >
+                 {label??name}
+             </Label>
+            <div className={'border rounded-xs focus-within:outline-1 focus-within:outline-black border-black flex items-center'}>
+                <Input
+                    required={true}
+                    type={passwordShow?'text':'password'}
+                    id={id??name}
+                    name={name}
+                    defaultValue={defaultValue??''}
+                    className={inputClassNameDefault}
+                />
+                <Button
+                    className={'w-8 flex justify-center border-none'}
+                    onClick={()=>setPasswordShow(!passwordShow)}
+                >
+                    { !passwordShow ?
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="slateGray" className="size-6">
+                            <path d="M3.53 2.47a.75.75 0 0 0-1.06 1.06l18 18a.75.75 0 1 0 1.06-1.06l-18-18ZM22.676 12.553a11.249 11.249 0 0 1-2.631 4.31l-3.099-3.099a5.25 5.25 0 0 0-6.71-6.71L7.759 4.577a11.217 11.217 0 0 1 4.242-.827c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113Z" />
+                            <path d="M15.75 12c0 .18-.013.357-.037.53l-4.244-4.243A3.75 3.75 0 0 1 15.75 12ZM12.53 15.713l-4.243-4.244a3.75 3.75 0 0 0 4.244 4.243Z" />
+                            <path d="M6.75 12c0-.619.107-1.213.304-1.764l-3.1-3.1a11.25 11.25 0 0 0-2.63 4.31c-.12.362-.12.752 0 1.114 1.489 4.467 5.704 7.69 10.675 7.69 1.5 0 2.933-.294 4.242-.827l-2.477-2.477A5.25 5.25 0 0 1 6.75 12Z" />
+                        </svg>
+                        :
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="slateGray" className="size-6">
+                            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                            <path fillRule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z" clipRule="evenodd" />
+                        </svg>
+                    }
+                </Button>
+            </div>
+        </Field>
+    )
+}
+
 // TODO: Make ID optional (defaulting to name) and label mandatory
 // TODO: allow default options
 export interface pushFormNode {
@@ -565,9 +631,9 @@ export interface pushFormNode {
     min?: number;
     name: string;
     node?: ReactNode;
-    options?:Array<{ value:string, label:string, defaultChecked?:boolean }>;
+    options?:Array<{ value:string, label:string, defaultChecked?:boolean }>; //defaultChecked NOT for radio options
     tags?: {display:string,value:string}[];
-    type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags' | 'listColumn' | 'note';
+    type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags' | 'listColumn' | 'note' | 'email' | 'password';
     defaultValue?: string | number;
     defaultTags?: string[];
     providedKVs?:KVRecord[];
@@ -576,6 +642,7 @@ export interface pushFormNode {
     providedListFieldEntries?:ListFieldEntry[];
     KVReference?:listAndKVReference[];
     listFieldReference?:listAndKVReference[];
+    defaultShow?:boolean;
 //     placeholder
 //     default
 //     onChange
@@ -603,7 +670,7 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
             editorKey:0,
             defaultDescription:'',
             description:'',
-            selectedImageFile:''
+            selectedImageFile:'',
         }
     );
     useEffect(()=>{
@@ -731,7 +798,41 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                             />
                         </div>
                     )
-
+                }
+                else if(field.type == 'email'){
+                    return(
+                        <Field key={i} className="flex"
+                               style={{flexDirection:field.labelPlacement??labelPlacementDefault??'column'}}>
+                            <Label
+                                style={{minWidth: longestLabel + 1 + 'ch',}}
+                            >
+                                {field.label??field.name}
+                            </Label>
+                            <Input
+                                className={inputClassNameDefault}
+                                name={field.name}
+                                id={field.id}
+                                type="email"
+                                defaultValue={field.defaultValue??''}
+                            />
+                        </Field>
+                    )
+                }
+                else if(field.type == 'password'){
+                    return(
+                        <PasswordField
+                            key={i}
+                            defaultShow={!!field.defaultShow}
+                            longestLabel={longestLabel}
+                            name={field.name}
+                            inputClassNameDefault={inputClassNameDefault}
+                            labelPlacement={field.labelPlacement}
+                            labelPlacementDefault={labelPlacementDefault}
+                            label={field.label??field.name}
+                            id={field.id}
+                            defaultValue={field.defaultValue}
+                        />
+                    )
                 }
                 else if(field.type == 'textArea'){
                     return(
@@ -797,14 +898,15 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                             <p style={{minWidth: longestLabel + 1 + 'ch',}}>{field.label??field.name}</p>
                             <RadioGroup
                                 name={field.name}
-                                defaultValue={options[field.defaultCheckedIndex??0]??'no-options-provided'}
+                                defaultValue={options[field.defaultCheckedIndex??0].value??'no-options-provided'}
                             >
                                 {options.map((option,j) =>{
                                   return (
                                       <Field key={j} className="flex gap-1 items-center cursor-pointer">
                                           <Radio
-                                              className={'flex size-5 items-center justify-center rounded-full border bg-white data-checked:bg-gray-900'}
-                                              value={option.value}>
+                                              className={'flex size-5 items-center justify-center rounded-full border bg-white group data-checked:bg-gray-900'}
+                                              value={option.value}
+                                          >
                                               <span className="invisible size-2 rounded-full bg-white group-data-checked:visible" />
                                           </Radio>
                                           <Label>{option.label??option.value}</Label>

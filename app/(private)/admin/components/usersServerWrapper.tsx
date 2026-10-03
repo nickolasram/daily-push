@@ -2,6 +2,7 @@
 
 import {PushCognitoClass} from "@/classes";
 import UsersClientWrapper from "@/app/(private)/admin/components/usersClientWrapper";
+import AddUserBtn from "@/app/(private)/admin/components/addUserBtn";
 
 export default async function UsersServerWrapper(){
     const users = await PushCognitoClass.listAllUsersWithGroups()
@@ -12,6 +13,7 @@ export default async function UsersServerWrapper(){
                 <p>Role</p>
             </div>
             <UsersClientWrapper users={users} />
+            <AddUserBtn />
         </div>
     )
 }
