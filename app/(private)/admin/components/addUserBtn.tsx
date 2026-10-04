@@ -6,12 +6,29 @@ import {pushFormNode} from "@/app/components/PushForm";
 
 const AddUserBtn =()=>{
     const [open, setOpen] = useState(false);
-    const handleSubmit =(event:SubmitEvent<HTMLFormElement>)=>{
-        event.preventDefault()
-        const formData = new FormData(event.currentTarget);
-        console.log(formData.get('Permissions/Role'))
-        console.log(formData.get('Password'))
+    // const handleSubmit =(event:SubmitEvent<HTMLFormElement>)=>{
+    //     event.preventDefault()
+    //     const formData = new FormData(event.currentTarget);
+    //     console.log(formData.get('Permissions/Role'))
+    //     console.log(formData.get('Password'))
+    // }
+    const handleSubmit = async(e:SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        await fetch('/api/users', {
+            method: 'POST',
+            body: new FormData(e.currentTarget)
+        }).then(async res => {
+            if (res.ok) {
+                setOpen(false);
+                return res.json()
+            } else {
+                console.log(res)
+                throw new Error(`${res.statusText}`)
+            }
+        })
     }
+
+
     const generatePassword = () => {
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+';
         let newPassword = '';
@@ -25,21 +42,25 @@ const AddUserBtn =()=>{
     const formFields:pushFormNode[] = [
         {
             type:'text',
-            name:'Username',
+            name:'username',
+            label:'Username',
         },
         {
             type:'password',
-            name:'Password',
+            name:'password',
+            label:'Password',
             defaultShow:true,
             defaultValue:generatedPassword,
         },
         {
             type: 'email',
-            name:'Email',
+            name:'email',
+            label:'Email',
         },
         {
             type: 'radio',
-            name:'Permissions/Role',
+            name:'role',
+            label:'Permissions/Role',
             defaultCheckedIndex:1,
             options: [
                 {
@@ -62,7 +83,7 @@ const AddUserBtn =()=>{
             formFields={formFields}
         >
             <div
-                className="flex gap-3 ghostAddBtn my-6 px-3 mx-0 bg-neon-cyan/70 w-max"
+                className="flex gap-3 ghostAddBtn my-6 px-3 mx-0 bg-neon-cyan/75 w-max"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
                     <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clipRule="evenodd" />

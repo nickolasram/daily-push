@@ -6,10 +6,14 @@ import {
     DeleteCommand, PutCommand, QueryCommand
 } from "@aws-sdk/lib-dynamodb";
 import {
+    AdminAddUserToGroupCommand,
+    AdminAddUserToGroupRequest,
+    AdminCreateUserCommand,
+    AdminCreateUserCommandInput,
     CognitoIdentityProviderClient,
     ListGroupsCommand,
     ListUsersCommand,
-    ListUsersInGroupCommand, UserType
+    ListUsersInGroupCommand
 } from "@aws-sdk/client-cognito-identity-provider";
 import {
     dynamoObject,
@@ -21,7 +25,7 @@ import {
     listAndKVReference,
     ListFieldEntry,
     articleAdminSettings,
-    PushArticleSummary, pushCognitoUser
+    PushArticleSummary
 } from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {SubmitEvent} from "react";
@@ -511,5 +515,21 @@ export class PushCognitoClass{
             }
         }
         return users;
+    }
+
+    public static async createUser(
+        client:CognitoIdentityProviderClient,
+        details:AdminCreateUserCommandInput
+    ){
+        const command = new AdminCreateUserCommand(details);
+        return client.send(command);
+    }
+
+    public static async assignUserToGroup(
+        client:CognitoIdentityProviderClient,
+        details:AdminAddUserToGroupRequest
+        ){
+        const command = new AdminAddUserToGroupCommand(details);
+        return client.send(command);
     }
 }
