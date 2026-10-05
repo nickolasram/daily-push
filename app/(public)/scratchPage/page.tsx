@@ -1,60 +1,35 @@
-"use server"
-import {generateKVRecord} from "@/app/components/PushForm";
-import {SubmitEvent} from "react";
-import {PushDynamoArticle} from "@/classes";
-import {listAndKVReference, KVRecord, suggestKVFieldValue} from "@/types";
-import ArticleForm from "@/app/components/articleElements";
+"use client"
 
-const usersReference:listAndKVReference[] = [
-    { display:'Admin',
-        value:'1245a',
-    },
-    { display:'Admin2',
-        value:'1245ab',
-    }
-]
-const KVs:KVRecord[] = [
-    {
-        key: 'Author',
-        value: '1245a',
-        object:true,
-        hidden:true
-    },
-    {
-        key: 'Research',
-        value: 'Michael',
-        object:false,
-        hidden:false
-    }
-]
-const suggestedKVs:suggestKVFieldValue[]=[
-    'Marcus',
-    {
-        value:'122nf',
-        display:'Tyrus'
-    }
-]
+import { useState } from "react"
 
-export default async function Page(){
-    // const scratchArticle = new PushDynamoArticle('1245a');
-    // scratchArticle.setFormSettings({
-    //     suggestedKVs:suggestedKVs,
-    //     kvReference:usersReference,
-    // })
-    // scratchArticle.setAdminSettings({reference:usersReference,suggested:suggestedKVs})
-    // const handleSubmit = (event:SubmitEvent<HTMLFormElement>) => {
-    //     scratchArticle.handleSubmit(event)
-    // }
-
+export default function Page(){
+    const [input, setInput] = useState<string>('')
+    // const re =  new RegExp('[\p{L}\p{M}\p{S}\p{N}\p{P}]+')
+    // const re =  new RegExp('[\p{L}]+')
+    const re =  new RegExp(/[\p{L}\p{M}\p{S}\p{N}\p{P}]/u)
+    const restructureInput =(input:string)=>{
+        let endValue = input
+        for (const character of input.split('')){
+            if (!re.test(character)){
+                const letterArray = endValue.split(character)
+                endValue = letterArray.join('_')
+            }
+        }
+        return endValue
+    }
     return (
         <div>
-            <p>scratch</p>
-            {/*<ArticleForm*/}
-            {/*    fields={scratchArticle.formNodes}*/}
-            {/*    onSubmit={handleSubmit}*/}
-            {/*    settingFields={scratchArticle.adminFormNodes}*/}
-            {/*    onSettingsSubmit={handleSubmit}*/}
-            {/*/>*/}
+            <input
+                type="text"
+                className={'bg-green-200 m-20 text-black'}
+                onChange={event => {
+                    setInput(event.target.value)
+                }}
+            />
+            <div className={'bg-white text-black w-30 min-h-15 mx-20'}>
+                <p>{input}</p>
+                <p>{restructureInput(input)}</p>
+            </div>
         </div>
     )
 }
