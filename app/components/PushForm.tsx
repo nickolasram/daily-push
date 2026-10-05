@@ -643,6 +643,7 @@ export interface pushFormNode {
     KVReference?:listAndKVReference[];
     listFieldReference?:listAndKVReference[];
     defaultShow?:boolean;
+    pattern?:string;
 //     placeholder
 //     default
 //     onChange
@@ -717,6 +718,7 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                                     id={field.id}
                                     type="text"
                                     defaultValue={field.defaultValue??''}
+                                    pattern={field.pattern?field.pattern:undefined}
                                 />
                             </Field>
                         )

@@ -1,31 +1,56 @@
 "use client"
 
 import FormDialogBtn from "@/app/components/formDialogBtn";
-import {useState,SubmitEvent} from "react";
+import {SubmitEvent, useState} from "react";
 import {pushFormNode} from "@/app/components/PushForm";
+import toast from "react-hot-toast";
 
-const AddUserBtn =()=>{
+interface props{
+    onSuccess:() => void;
+}
+
+const AddUserBtn =({onSuccess}:props)=>{
     const [open, setOpen] = useState(false);
-    // const handleSubmit =(event:SubmitEvent<HTMLFormElement>)=>{
-    //     event.preventDefault()
-    //     const formData = new FormData(event.currentTarget);
-    //     console.log(formData.get('Permissions/Role'))
-    //     console.log(formData.get('Password'))
-    // }
-    const handleSubmit = async(e:SubmitEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        await fetch('/api/users', {
+
+    const fetchApi=async (e:SubmitEvent<HTMLFormElement>)=>{
+        return fetch('/api/users', {
             method: 'POST',
             body: new FormData(e.currentTarget)
         }).then(async res => {
             if (res.ok) {
                 setOpen(false);
-                return res.json()
+                onSuccess();
+                return res
             } else {
                 console.log(res)
                 throw new Error(`${res.statusText}`)
             }
         })
+    }
+
+    const handleSubmit = async(e:SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        toast.promise(
+            fetchApi(e),
+            {
+                loading: 'Attempting to Create User...',
+                success: 'Successfully Created User',
+                error: () => {
+                    return `Error Creating User.`
+                },
+            },
+            {
+                style: {
+                    minWidth: '250px'
+                },
+                success: {
+                    duration: 1000,
+                },
+                error: {
+                    duration: 500,
+                }
+            }
+        )
     }
 
 
