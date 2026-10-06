@@ -1,9 +1,14 @@
 "use server"
 import {PushCognitoClass, PushDynamoArticle} from "@/classes";
 import {getSession} from "@/session/actions";
-import {SubmitEvent, Suspense} from "react";
-import {articleFormSettings, KVRecord, listAndKVReference, suggestKVFieldValue} from "@/types";
-import PushForm from "@/app/components/PushForm";
+import {Suspense} from "react";
+import {
+    articleAdminSettings,
+    articleFormSettings,
+    KVRecord,
+    listAndKVReference,
+    suggestKVFieldValue
+} from "@/types";
 import ArticleFormDemoWrapper from "@/app/(public)/demos/articles/articleFormDemoWrapper";
 import SimpleVertical from "@/app/components/frameworks/simpleVertical";
 
@@ -21,6 +26,10 @@ const Page=async ()=>{
             object:true,
             hidden:false
         }
+        const adminSettings:articleAdminSettings = {
+            reference: [],
+            suggested: []
+        }
         const suggestedKVs:suggestKVFieldValue[] = []
         const kvReferences:listAndKVReference[] = []
         for (const user of userPool.Users!) {
@@ -33,6 +42,8 @@ const Page=async ()=>{
                 }
                 suggestedKVs.push(reference)
                 kvReferences.push(reference)
+                adminSettings.reference!.push(reference)
+                adminSettings.suggested!.push(reference)
             }
         }
         const articleSettings:articleFormSettings = {
@@ -45,6 +56,7 @@ const Page=async ()=>{
             kvReference:kvReferences
         }
         article.setFormSettings(articleSettings);
+        article.setAdminSettings(adminSettings);
     }
 
     return (
@@ -59,6 +71,7 @@ const Page=async ()=>{
                 { userPoolSuccess && userSub &&
                     <ArticleFormDemoWrapper
                         formNodes={article!.formNodes}
+                        settingNodes={article!.adminFormNodes}
                     />
                 }
             </Suspense>
