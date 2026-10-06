@@ -7,7 +7,13 @@ import {
 import {getSession} from "@/session/actions";
 
 interface potentialResult{
-    idToken?:string;
+    idToken?:{
+        jwtToken:string,
+        payload:{
+            sub:string,
+            'cognito:groups':string[]
+        }
+    };
 }
 
 interface returnError{
@@ -42,11 +48,13 @@ export async function POST(req: NextRequest){
             Pool: userPool,
         }
         const cognitoUser = new CognitoUser(userData);
-        const result:potentialResult = await asyncAuthentication(cognitoUser, authDetails) as potentialResult;
-        if ('idToken' in result) {
+        const result = await asyncAuthentication(cognitoUser, authDetails) as potentialResult;
+        if ('idToken' in (result as potentialResult)) {
             const session = await getSession();
+            const sub = result.idToken?.payload.sub
             session.isLoggedIn = true;
             session.username = username;
+            session.sub = sub;
             await session.save();
         } else {
             NextResponse.json({error: result}, {status:500});
