@@ -470,17 +470,14 @@ export class PushDynamoArticle extends PushDynamoClass{
 
 export class PushCognitoClass{
 
-    public static async listAllUsers(){
+    public static async listAllUsers(attributes?:string[]){
         const config = {
             ClientId: process.env.NEXT_PUBLIC_CLIENT_ID as string,
         }
         const client = new CognitoIdentityProviderClient(config)
         const input = {
             UserPoolId: process.env.NEXT_PUBLIC_USER_POOL_ID as string,
-            AttributesToGet: [
-                'preferred_username',
-                'sub'
-            ]
+            AttributesToGet: attributes
         }
         const command = new ListUsersCommand(input);
         return await client.send(command);

@@ -73,7 +73,7 @@ export interface listAndKVReference{
     display:string;
 }
 
-export type suggestKVFieldValue = string | {value:string,display:string}
+export type suggestKVFieldValue = string | listAndKVReference
 
 export interface ListFieldEntry{
     value:string;
