@@ -1,10 +1,9 @@
 "use server"
-import {PushCognitoClass, PushDynamoArticle} from "@/classes";
+import {PushCognitoClass} from "@/classes";
 import {getSession} from "@/session/actions";
 import {Suspense} from "react";
 import {
     articleAdminSettings,
-    articleFormSettings,
     KVRecord,
     listAndKVReference,
     suggestKVFieldValue
@@ -17,21 +16,19 @@ const Page=async ()=>{
     const userPool = await PushCognitoClass.listAllUsers();
     const userPoolSuccess = !!(userPool.Users && userPool.Users.length > 0);
     const userSub = session.sub;
-    let article:PushDynamoArticle|undefined;
+    const adminSettings:articleAdminSettings = {
+        reference: [],
+        suggested: []
+    }
+    const suggestedKVs:suggestKVFieldValue[] = []
+    const kvReferences:listAndKVReference[] = []
+    const authorKV:KVRecord = {
+        key: 'Author',
+        value: userSub??'',
+        object:true,
+        hidden:false
+    }
     if (userSub && userPoolSuccess) {
-        article = new PushDynamoArticle(userSub)
-        const authorKV:KVRecord = {
-            key: 'Author',
-            value: userSub,
-            object:true,
-            hidden:false
-        }
-        const adminSettings:articleAdminSettings = {
-            reference: [],
-            suggested: []
-        }
-        const suggestedKVs:suggestKVFieldValue[] = []
-        const kvReferences:listAndKVReference[] = []
         for (const user of userPool.Users!) {
             const sub = user.Attributes!.find(obj=>{return obj.Name === 'sub'})
             const pUsername = user.Attributes!.find(obj=>{return obj.Name === 'preferred_username'})
@@ -46,17 +43,6 @@ const Page=async ()=>{
                 adminSettings.suggested!.push(reference)
             }
         }
-        const articleSettings:articleFormSettings = {
-            headingLabel:'Title',
-            hideSubheading:false,
-            subheadingLabel:'Sub Title',
-            hideHeaderImage:false,
-            providedKVs: [authorKV],
-            suggestedKVs: suggestedKVs,
-            kvReference:kvReferences
-        }
-        article.setFormSettings(articleSettings);
-        article.setAdminSettings(adminSettings);
     }
 
     return (
@@ -70,8 +56,11 @@ const Page=async ()=>{
                 }
                 { userPoolSuccess && userSub &&
                     <ArticleFormDemoWrapper
-                        formNodes={article!.formNodes}
-                        settingNodes={article!.adminFormNodes}
+                        userSub={userSub}
+                        adminSettings={adminSettings}
+                        suggestedKVs={suggestedKVs}
+                        authorKV={authorKV}
+                        kvReferences={kvReferences}
                     />
                 }
             </Suspense>

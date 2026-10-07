@@ -1,15 +1,31 @@
 "use client"
 
-import {pushFormNode} from "@/app/components/PushForm";
 import {SubmitEvent} from "react";
 import ArticleForm from "@/app/components/articleElements";
+import {articleAdminSettings, articleFormSettings, KVRecord, listAndKVReference, suggestKVFieldValue} from "@/types";
+import {PushDynamoArticle} from "@/classes";
 
 interface props{
-    formNodes:pushFormNode[];
-    settingNodes:pushFormNode[];
+    userSub:string;
+    adminSettings:articleAdminSettings;
+    suggestedKVs:suggestKVFieldValue[];
+    kvReferences:listAndKVReference[]
+    authorKV:KVRecord;
 }
 
-const ArticleFormDemoWrapper=({formNodes,settingNodes}:props)=>{
+const ArticleFormDemoWrapper=({userSub,adminSettings,suggestedKVs,kvReferences,authorKV}:props)=>{
+    const article = new PushDynamoArticle(userSub);
+    const articleSettings:articleFormSettings = {
+        headingLabel:'Title',
+        hideSubheading:false,
+        subheadingLabel:'Sub Title',
+        hideHeaderImage:false,
+        providedKVs: [authorKV],
+        suggestedKVs: suggestedKVs,
+        kvReference:kvReferences
+    }
+    article.setFormSettings(articleSettings);
+    article.setAdminSettings(adminSettings);
     const handleSubmit=(event: SubmitEvent<HTMLFormElement>)=>{
         event.preventDefault()
         alert('submitted')
@@ -21,9 +37,9 @@ const ArticleFormDemoWrapper=({formNodes,settingNodes}:props)=>{
     return(
         <div className="mt-6">
             <ArticleForm
-                fields={formNodes}
+                fields={article.formNodes}
                 onSubmit={handleSubmit}
-                settingFields={settingNodes}
+                settingFields={article.adminFormNodes}
                 onSettingsSubmit={handleSettingsSubmit}
             />
         </div>
