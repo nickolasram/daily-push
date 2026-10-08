@@ -84,9 +84,10 @@ export interface ListFieldEntry{
 export type suggestListFieldValue = string | {value:string,display:string}
 
 export interface articleAdminSetting{
-    id: string,
-    permission: 'creator'|'admin'|'editor'|'reviewer',
-    reference:boolean
+    id: string;
+    permission: 'creator'|'admin'|'editor'|'reviewer';
+    reference:boolean;
+    hidden:boolean;
 }
 
 export interface articleFormSettings{
