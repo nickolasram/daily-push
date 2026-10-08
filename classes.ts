@@ -1,9 +1,11 @@
 import {
+    DeleteCommand,
     DynamoDBDocumentClient,
     GetCommand,
+    PutCommand,
+    QueryCommand,
     UpdateCommand,
-    UpdateCommandOutput,
-    DeleteCommand, PutCommand, QueryCommand
+    UpdateCommandOutput
 } from "@aws-sdk/lib-dynamodb";
 import {
     AdminAddUserToGroupCommand,
@@ -16,27 +18,23 @@ import {
     ListUsersInGroupCommand
 } from "@aws-sdk/client-cognito-identity-provider";
 import {
+    articleAdminSetting,
+    articleAdminSettings,
+    articleFormSettings,
     dynamoObject,
     KVRecord,
-    PushArticle,
-    suggestKVFieldValue,
-    articleFormSettings,
-    articleAdminSetting,
     listAndKVReference,
     ListFieldEntry,
-    articleAdminSettings,
-    PushArticleSummary
+    PushArticle,
+    PushArticleSummary,
+    suggestKVFieldValue
 } from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {SubmitEvent} from "react";
-import {generateKVRecord, pushFormNode} from "@/app/components/PushForm";
+import {generateKVRecord, generateListFieldValues, pushFormNode} from "@/app/components/PushForm";
 import {getDynamoClient} from "@/globalFunctions/functions";
 import sanitize from "sanitize-filename";
-import {
-    PutObjectCommand,
-    S3Client,
-    S3ServiceException,
-} from "@aws-sdk/client-s3";
+import {PutObjectCommand, S3Client, S3ServiceException,} from "@aws-sdk/client-s3";
 import {NextRequest, NextResponse} from "next/server";
 
 export abstract class PushDynamoClass {
@@ -120,7 +118,8 @@ export class PushDynamoArticle extends PushDynamoClass{
             this.adminSettings = [{
                 id: arg1,
                 permission:'creator',
-                reference:true
+                reference:true,
+                hidden:false
             }]
             creatorValue = arg1
             const defaultUser:KVRecord = {
@@ -292,6 +291,61 @@ export class PushDynamoArticle extends PushDynamoClass{
             })
     }
 
+    public static getNewAdminSettings(
+        data:FormData,
+        creatorSetting:articleAdminSetting,
+    ){
+        const admins = generateListFieldValues('admins',data)
+        const adminPerms:articleAdminSetting[] = admins.map(adminUser=>{
+            return {
+                id:adminUser.value,
+                reference:adminUser.object,
+                hidden:adminUser.hidden,
+                permission: 'admin',
+            }
+        })
+        const editors = generateListFieldValues('editors',data)
+        const editorPerms:articleAdminSetting[] = editors.map(adminUser=>{
+            return {
+                id:adminUser.value,
+                reference:adminUser.object,
+                hidden:adminUser.hidden,
+                permission: 'editor',
+            }
+        })
+        const reviewers = generateListFieldValues('reviewers',data)
+        const reviewerPerms:articleAdminSetting[] = reviewers.map(adminUser=>{
+            return {
+                id:adminUser.value,
+                reference:adminUser.object,
+                hidden:adminUser.hidden,
+                permission: 'reviewer',
+            }
+        })
+        return [creatorSetting, ...adminPerms, ...editorPerms, ...reviewerPerms]
+    }
+
+    public static async handleSettingsSubmitPatch(
+            client:DynamoDBDocumentClient,
+            articleId:string,
+            adminSettings:articleAdminSetting[]
+        ){
+        const table = process.env.NEXT_PUBLIC_TABLE_NAME as string
+        const objectId = articleId
+        if (objectId===''){
+            throw new Error('no objectId provided')
+        }
+        return super.dynamoPatch(
+            client,
+            table,
+            {
+                objectType:'article',
+                objectId:objectId,
+            },
+            {'adminSettings':adminSettings},
+        )
+    }
+
     public static get(client:DynamoDBDocumentClient,
                       id:string){
         const table = process.env.NEXT_PUBLIC_TABLE_NAME as string
@@ -460,10 +514,10 @@ export class PushDynamoArticle extends PushDynamoClass{
     //         publishedContent:this.publishedContent,
     //         contributors:contributors,
     //         published:true,
-    //         savedContent:'',
-    //         lastSavedDate:'',
+    //         savedContent:this.savedContent??'',
+    //         lastSavedDate:this.lastSavedDate??new Date('01/01/1900'),
     //         formSettings:this.formSettings,
-    //         adminSettings:[]
+    //         adminSettings:this.adminSettings
     //     }
     // }
 }

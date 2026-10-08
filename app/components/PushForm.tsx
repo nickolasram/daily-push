@@ -38,13 +38,15 @@ export function generateListFieldValues(name:string,formData:FormData):ListField
     const entriesHidden = formData.getAll(name+'Hidden') as [string];
     const listLength = entryValues.length;
     for(let i=0;i<listLength;i++){
-        returnedValues.push(
-            {
-                value:entryValues[i],
-                object:entriesObject.includes(entryValues[i]+'Object'),
-                hidden: entriesHidden.includes(entriesHidden[i]+'Hidden')
-            }
-        )
+        if(entryValues[i]!==''){
+            returnedValues.push(
+                {
+                    value:entryValues[i],
+                    object:entriesObject.includes(entryValues[i]+'Object'),
+                    hidden: entriesHidden.includes(entryValues[i]+'Hidden')
+                }
+            )
+        }
     }
     return returnedValues;
 }
@@ -214,14 +216,16 @@ export function generateKVRecord(name:string, formData:FormData) {
     const recordHidden = formData.getAll(name+'Hidden') as [string];
     const listLength = recordKeys.length;
     for(let i=0;i<listLength;i++){
-        returnedRecords.push(
-            {
-                key:recordKeys[i],
-                value:recordValues[i],
-                object:recordObject.includes(recordValues[i]+'Object'),
-                hidden: recordHidden.includes(recordValues[i]+'Hidden')
-            }
-        )
+        if (recordValues[i]!==''&&recordKeys[i]!==''){
+            returnedRecords.push(
+                {
+                    key:recordKeys[i]!==''?recordKeys[i]:'[No Key Provided]',
+                    value:recordValues[i]!=='?'?recordValues[i]:'[No Value Provided]',
+                    object:recordObject.includes(recordValues[i]+'Object'),
+                    hidden: recordHidden.includes(recordValues[i]+'Hidden')
+                }
+            )
+        }
     }
     return returnedRecords;
 }
