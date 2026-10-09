@@ -19,7 +19,7 @@ import {
 } from "@aws-sdk/client-cognito-identity-provider";
 import {
     articleAdminSetting,
-    articleAdminSettings,
+    articleAdminFormSettings,
     articleFormSettings,
     dynamoObject,
     KVRecord,
@@ -234,7 +234,7 @@ export class PushDynamoArticle extends PushDynamoClass{
         }
     }
 
-    public setAdminSettings(settings:articleAdminSettings):void{
+    public setAdminFormSettings(settings:articleAdminFormSettings):void{
         for (const node of this.adminFormNodes) {
             if (node.type == 'note') {
                 const creatorSetting = this.adminSettings.find(obj=>{return obj.permission == 'creator'})
@@ -503,23 +503,23 @@ export class PushDynamoArticle extends PushDynamoClass{
         }
     }
 
-    // public plainArticle():PushArticle{
-    //     const contributors = this.formNodes.find(obj=>{return obj.name=='contributors'})?.providedKVs as KVRecord[];
-    //     return {
-    //         heading:this.heading??'[HEADING]',
-    //         subheading:this.subheading,
-    //         headerImage:this.headerImage,
-    //         firstPublishedDate:this.firstPublishedDate,
-    //         latestUpdatedDate:this.latestUpdatedDate,
-    //         publishedContent:this.publishedContent,
-    //         contributors:contributors,
-    //         published:true,
-    //         savedContent:this.savedContent??'',
-    //         lastSavedDate:this.lastSavedDate??new Date('01/01/1900'),
-    //         formSettings:this.formSettings,
-    //         adminSettings:this.adminSettings
-    //     }
-    // }
+    public plainArticle():PushArticle{
+        const contributors = this.formNodes.find(obj=>{return obj.name=='contributors'})?.providedKVs as KVRecord[];
+        return {
+            heading:this.heading,
+            subheading:this.subheading,
+            headerImage:this.headerImage,
+            firstPublishedDate:this.firstPublishedDate,
+            latestUpdatedDate:this.latestUpdatedDate,
+            publishedContent:this.publishedContent,
+            contributors:contributors,
+            published:true,
+            savedContent:this.savedContent,
+            lastSavedDate:this.lastSavedDate,
+            formSettings:this.formSettings,
+            adminSettings:this.adminSettings
+        }
+    }
 }
 
 export class PushCognitoClass{

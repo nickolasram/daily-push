@@ -35,16 +35,16 @@ export interface PushSortingFilterOption{
 }
 
 export interface PushArticle {
-    heading:string;
+    heading:string|undefined;
     subheading?:string;
     objectId?:string;
     objectType?: 'article';
     firstPublishedDate?:string|Date;
     latestUpdatedDate?:string|Date;
-    savedContent:string;
+    savedContent:string|undefined;
     publishedContent?:string;
     published:boolean;
-    lastSavedDate:string|Date;
+    lastSavedDate:string|Date|undefined;
     formSettings: simpleArticleFormSettings;
     adminSettings: articleAdminSetting[];
     headerImage?:string;
@@ -108,7 +108,7 @@ export interface simpleArticleFormSettings{
     providedKVs?:KVRecord[];
 }
 
-export interface articleAdminSettings{
+export interface articleAdminFormSettings{
     reference?:listAndKVReference[];
     suggested?:suggestListFieldValue[];
 }

@@ -9,7 +9,7 @@ export async function PATCH(req: NextRequest) {
         const client = await getDynamoClient()
         const articleId = body.articleId as string;
         const newAdminSettings = body.adminSettings as articleAdminSetting[];
-        PushDynamoArticle.handleSettingsSubmitPatch(
+        await PushDynamoArticle.handleSettingsSubmitPatch(
             client,
             articleId,
             newAdminSettings
