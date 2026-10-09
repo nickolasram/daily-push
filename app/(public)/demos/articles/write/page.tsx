@@ -3,7 +3,7 @@ import {PushCognitoClass} from "@/classes";
 import {getSession} from "@/session/actions";
 import {Suspense} from "react";
 import {
-    articleAdminSettings,
+    articleAdminFormSettings,
     KVRecord,
     listAndKVReference,
     suggestKVFieldValue
@@ -16,7 +16,7 @@ const Page=async ()=>{
     const userPool = await PushCognitoClass.listAllUsers();
     const userPoolSuccess = !!(userPool.Users && userPool.Users.length > 0);
     const userSub = session.sub;
-    const adminSettings:articleAdminSettings = {
+    const adminSettings:articleAdminFormSettings = {
         reference: [],
         suggested: []
     }
