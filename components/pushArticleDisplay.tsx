@@ -1,10 +1,12 @@
+"use server"
+
 import {listAndKVReference, PushArticle} from "@/types";
 import Image from 'next/image'
 import TipTapText from "@/app/components/tiptapText";
 
 interface props {
     article:PushArticle,
-    authorsReference?:listAndKVReference[];
+    authorsReference?:(listAndKVReference|undefined)[];
 }
 
 const shimmer = () => `
@@ -31,7 +33,7 @@ const PushArticleDisplay=({article,authorsReference}:props)=>{
     const contributorAlias = visibleContributors.map(obj=>{
         if (obj.object){
             const name = (authorsReference??[]).find(ref=>{
-                return(ref.value==obj.value)
+                return(ref?.value==obj.value)
             })?.display??'[user not found]'
             return (
                 `${obj.key}: ${name}`
@@ -64,10 +66,11 @@ const PushArticleDisplay=({article,authorsReference}:props)=>{
                  />
              </div>
             }
-            { contributorAlias.map((alias,i)=>(
-                <p className={'text-left w-full'} key={i}>{alias}</p>
-            ))
-            }
+            <div className={'w-full'}>
+                { contributorAlias.map((alias,i)=>(
+                        <p className={'text-left w-full'} key={i}>{alias}</p>
+                    ))}
+            </div>
             <div className={'w-full'}>
                 <TipTapText text={article.publishedContent??'<p>Nothing Here Yet :(</p>'} />
             </div>

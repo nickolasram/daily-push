@@ -156,7 +156,7 @@ export class PushDynamoArticle extends PushDynamoClass{
             providedKVs:provided
         }
         this.formNodes = [
-            { name: 'heading', type: 'text', label: 'Heading', defaultValue: this.heading},
+            { name: 'heading', type: 'text', label: 'Heading', defaultValue: this.heading, required:true},
             { name: 'subheading', type: 'text', label: 'Subheading', defaultValue: this.heading},
             { name: 'headerImage', type: 'image', label: 'Header Image', defaultValue: this.headerImage},
             contributorNode,
@@ -259,7 +259,6 @@ export class PushDynamoArticle extends PushDynamoClass{
     }
 
     public async handleSubmit(event:SubmitEvent<HTMLFormElement>){
-        event.preventDefault()
         const data = new FormData(event.currentTarget);
         const controlValue = this.getControlValue(event)
         data.append('controlValue', controlValue)
@@ -379,7 +378,7 @@ export class PushDynamoArticle extends PushDynamoClass{
         const formData = await req.formData()
         const file = formData.get('headerImage') as File|undefined
         let imageAddress:string|undefined;
-        if (file){
+        if (file && file.name!=='' && file.size!==0){
             let name: string = file.name;
             name = name.replace(/\s/g, "");
             name = sanitize(name)
@@ -430,7 +429,7 @@ export class PushDynamoArticle extends PushDynamoClass{
         if (controlValue == 'save'){
             newArticle = {
                 heading: formData.get('heading')?formData.get('heading') as string:'[HEADING]',
-                subheading: hideSubheading?undefined:formData.get('heading')?formData.get('heading') as string:undefined,
+                subheading: hideSubheading?undefined:formData.get('subheading')?formData.get('subheading') as string:undefined,
                 headerImage: hideHeaderImage?undefined:imageAddress,
                 savedContent:formData.get('content')?formData.get('content') as string:'[BODY]',
                 published:false,
@@ -442,7 +441,7 @@ export class PushDynamoArticle extends PushDynamoClass{
         } else {
             newArticle = {
                 heading: formData.get('heading')?formData.get('heading') as string:'[HEADING]',
-                subheading: hideSubheading?undefined:formData.get('heading')?formData.get('heading') as string:undefined,
+                subheading: hideSubheading?undefined:formData.get('subheading')?formData.get('subheading') as string:undefined,
                 headerImage: hideHeaderImage?undefined:imageAddress,
                 published:true,
                 savedContent:formData.get('content')?formData.get('content') as string:'[BODY]',

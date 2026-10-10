@@ -11,6 +11,7 @@ import {
     suggestKVFieldValue
 } from "@/types";
 import {PushDynamoArticle} from "@/classes";
+import toast from "react-hot-toast";
 
 interface props{
     userSub:string;
@@ -35,8 +36,29 @@ const ArticleFormDemoWrapper=({userSub,adminSettings,suggestedKVs,kvReferences,a
     freshArticle.setAdminFormSettings(adminSettings);
     const [article,setArticle] = useState(freshArticle);
     const handleSubmit=(event: SubmitEvent<HTMLFormElement>)=>{
-        event.preventDefault()
-        alert('submitted')
+        event.preventDefault();
+        const btnPressed = article.getControlValue(event)
+        toast.promise(
+            article.handleSubmit(event),
+            {
+                loading: `Attempting to ${btnPressed=='save'?'Save':'Publish'} Article...`,
+                success: `Successfully ${btnPressed=='save'?'Save':'Publish'} Article.`,
+                error: () => {
+                    return `Error ${btnPressed=='save'?'Save':'Publish'} Article.`
+                },
+            },
+            {
+                style: {
+                    minWidth: '250px'
+                },
+                success: {
+                    duration: 1000,
+                },
+                error: {
+                    duration: 500,
+                }
+            }
+        )
     }
     const handleSettingsSubmit=async (event: SubmitEvent<HTMLFormElement>)=>{
         event.preventDefault()
@@ -50,15 +72,37 @@ const ArticleFormDemoWrapper=({userSub,adminSettings,suggestedKVs,kvReferences,a
         updatedArticle.setAdminFormSettings(adminSettings);
         setArticle(updatedArticle);
         if(updatedArticle.lastSavedDate&&updatedArticle.articleId){
-            fetch('/api/articleAdmin', {
-                method:"PATCH",
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        articleId: updatedArticle.articleId,
-                        adminSettings:newAdminSettings,
-                    }),
+            toast.promise(
+                fetch('/api/articleAdmin', {
+                        method:"PATCH",
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            articleId: updatedArticle.articleId,
+                            adminSettings:newAdminSettings,
+                        }),
+                    }
+                ),
+                {
+                    loading: `Attempting to Update Perms...`,
+                    success: `Successfully Updated Perms...`,
+                    error: () => {
+                        return `Error Updating Perms...`
+                    },
+                },
+                {
+                    style: {
+                        minWidth: '250px'
+                    },
+                    success: {
+                        duration: 1000,
+                    },
+                    error: {
+                        duration: 500,
+                    }
                 }
-                )
+            )
+        } else {
+            toast.success("Updated Admin Perms.");
         }
     }
     return(
