@@ -648,6 +648,7 @@ export interface pushFormNode {
     listFieldReference?:listAndKVReference[];
     defaultShow?:boolean;
     pattern?:string;
+    required?:boolean;
 //     placeholder
 //     default
 //     onChange
@@ -723,6 +724,7 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                                     type="text"
                                     defaultValue={field.defaultValue??''}
                                     pattern={field.pattern?field.pattern:undefined}
+                                    required={!!field.required}
                                 />
                             </Field>
                         )
@@ -747,6 +749,7 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                                     //TODO: Make width customizable
                                     maxWidth:'200px',
                                 }}
+                                required={!!field.required}
                             />
                         </Field>
                     )
@@ -820,6 +823,7 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                                 id={field.id}
                                 type="email"
                                 defaultValue={field.defaultValue??''}
+                                required={!!field.required}
                             />
                         </Field>
                     )
