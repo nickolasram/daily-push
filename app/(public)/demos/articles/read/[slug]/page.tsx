@@ -3,16 +3,9 @@
 import {getDynamoClient} from "@/globalFunctions/functions";
 import {PushCognitoClass, PushDynamoArticle} from "@/classes";
 import SimpleVertical from "@/app/components/frameworks/simpleVertical";
-import {listAndKVReference, PushArticle} from "@/types";
+import {PushArticle} from "@/types";
 import PushArticleDisplay from "@/components/pushArticleDisplay";
 import {Suspense} from "react";
-
-const KVs:listAndKVReference[] = [
-    {
-        display: 'Admin',
-        value: '1245a',
-    }
-]
 
 export default async function Page({params}:{params:Promise<{slug: string}>}){
     const {slug} = await params;

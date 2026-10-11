@@ -3,6 +3,8 @@ import BurgerNav from "@/app/components/burgerNav";
 import Link from "next/link";
 import AdminBurger from "@/app/(private)/admin/components/adminBurger";
 import LogoutBtn from "@/app/(private)/admin/components/logoutBtn";
+import {getSession} from "@/session/actions";
+import PushLoginForm from "@/app/components/pushLoginForm";
 
 export default async function RootLayout(
     {
@@ -13,13 +15,14 @@ export default async function RootLayout(
         main: ReactNode;
     }>
 ) {
+    const session = await getSession();
     return (
-        <div className={'min-h-screen flex flex-col'}>
+        <div className={'min-h-screen flex flex-col w-screen'}>
             <div>
                 <BurgerNav>
                     <BurgerNav.Logo>
                         <div className={'flex gap-3 items-baseline'}>
-                            <Link href={'/'} className={'text-xl font-bold'}>Daily-Push!</Link>
+                            <Link href={'/public'} className={'text-xl font-bold'}>Daily-Push!</Link>
                             <p>Articles</p>
                         </div>
                     </BurgerNav.Logo>
@@ -33,7 +36,15 @@ export default async function RootLayout(
                     </BurgerNav.Burger>
                 </BurgerNav>
             </div>
-            {children}
+            { session.isLoggedIn?
+                children
+                 :
+                <div className="w-full h-full min-h-50 grow-1 flex flex-col items-center justify-center">
+                    <PushLoginForm
+                        style={'neon'}
+                    />
+                </div>
+            }
         </div>
     )
 }

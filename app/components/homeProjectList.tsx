@@ -4,7 +4,6 @@ import {PushProject, PushSortingFilterOption} from "@/types";
 import {useState} from "react";
 import PushSortFilter from "@/app/components/pushSortFilter";
 import LeftWrapJustifyCenterContainer from "@/app/components/frameworks/leftWrapJustifyCenterContainer";
-import {ProjectEditBtn} from "@/app/(private)/admin/components/editBtns";
 import Link from "next/link";
 import PushMenuBtn from "@/app/components/pushMenuBtn";
 import ProjectSquare from "@/app/components/projectSquare";

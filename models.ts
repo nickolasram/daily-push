@@ -2,13 +2,13 @@ import {PushDynamoClass} from "@/classes";
 import {SubmitEvent} from "react";
 import {pushFormNode} from "@/app/components/PushForm";
 import {
-    DynamoDBDocumentClient, GetCommand,
+    DynamoDBDocumentClient,
     PutCommand,
     PutCommandOutput,
     QueryCommand,
     UpdateCommandOutput
 } from "@aws-sdk/lib-dynamodb";
-import {dynamoObject, PushArticle, PushIdea, PushProject, PushTag} from "@/types";
+import {dynamoObject, PushIdea, PushProject, PushTag} from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {getDynamoClient} from "@/globalFunctions/functions";
 
