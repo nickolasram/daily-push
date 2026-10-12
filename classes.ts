@@ -367,6 +367,27 @@ export class PushDynamoArticle extends PushDynamoClass{
         return q.Items??[];
     }
 
+    private static async getAllQuery(){
+        const table = process.env.NEXT_PUBLIC_TABLE_NAME as string
+        const allProjects = new QueryCommand({
+            TableName:table,
+            KeyConditionExpression: 'objectType = :ar',
+            ExpressionAttributeValues: {
+                ':ar': 'article',
+            },
+        })
+        const c = await getDynamoClient()
+        const q = await c.send(allProjects)
+        return q.Items??[];
+    }
+
+    public static async getAllArticles(){
+        const q = await PushDynamoArticle.getAllQuery() as PushArticle[];
+        return q.map(article => {
+            return new PushDynamoArticle(article);
+        })
+    }
+
     public static async getAllPublishedArticles(){
         const q = await PushDynamoArticle.getAllPublishedQuery() as PushArticle[];
         return q.map(article => {
@@ -499,6 +520,8 @@ export class PushDynamoArticle extends PushDynamoClass{
             latestUpdatedDate:this.latestUpdatedDate,
             publishedContent:this.publishedContent,
             contributors:contributors,
+            published:this.published,
+            latestSavedDate:this.lastSavedDate
         }
     }
 

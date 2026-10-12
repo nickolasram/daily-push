@@ -1,11 +1,13 @@
 "use server"
 
 import {PushCognitoClass, PushDynamoArticle} from "@/classes";
-import {listAndKVReference, PushArticleSummary} from "@/types";
+import {listAndKVReference, PushArticle, PushArticleSummary} from "@/types";
 import {Suspense} from "react";
 import PushArticlePreview from "@/components/pushArticlePreview";
 import Link from "next/link";
 import SimpleVertical from "@/app/components/frameworks/simpleVertical";
+import {getDynamoClient} from "@/globalFunctions/functions";
+import PushArticleDisplay from "@/components/pushArticleDisplay";
 
 const Page=async(
     {
@@ -31,15 +33,23 @@ const Page=async(
         }
     })
     let articleSummaries:{ summary:PushArticleSummary,id:string }[] = [];
+    let article: PushArticle|undefined;
     if (slug==='view') {
-        const articles = await PushDynamoArticle.getAllPublishedArticles()
+        const articles = await PushDynamoArticle.getAllArticles();
         articleSummaries = articles.map(article=>{
             return {
                 summary: article.plainSummary(),
                 id: article.articleId!
             }
         })
+    } else {
+        const client = await getDynamoClient();
+        const articleResponse = await PushDynamoArticle.get(client, slug)
+        if (articleResponse.Item) {
+            article = articleResponse.Item as PushArticle
+        }
     }
+
 
     return (
         <SimpleVertical>
@@ -51,7 +61,7 @@ const Page=async(
                                 <div className={'w-full'} key={i}>
                                     <Link
                                         className={'w-full'}
-                                        href={'/articles/'+summary.id}
+                                        href={'/articles/'+summary.id+'/read'}
                                         target={'_blank'}
                                     >
                                         <PushArticlePreview
@@ -61,8 +71,24 @@ const Page=async(
                                             authorsReference={userReferenceKVs}
                                         />
                                     </Link>
-                                    <div className={'w-full flex justify-end'}>
-                                        <p>Edit &gt;&gt;</p>
+                                    <div className={'w-full flex justify-between'}>
+                                        <p
+                                            className={`${summary.summary.published?'text-green-500':'text-red-500'} bg-black/50 px-3 text-sm md:text-md`}
+                                        >
+                                            {summary.summary.published?"Public":"Hidden"}
+                                        </p>
+                                        <p
+                                            className={`${summary.summary.published?'text-green-500':'text-red-500'} bg-black/50 px-3 text-sm md:text-md`}
+                                        >
+                                            {summary.summary.latestSavedDate==summary.summary.latestUpdatedDate?"Published Up to Date":"Published Not Up to Date"}
+                                        </p>
+                                        <div className={'flex gap-1 items-center text-sm md:text-md'}>
+                                            <p>Jump to Edit</p>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-3">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
+                                            </svg>
+
+                                        </div>
                                     </div>
                                 </div>
                             ))
@@ -70,7 +96,29 @@ const Page=async(
                     </>
                 }
                 { slug !== 'view' &&
-                    <p>{option[0]}</p>
+                    <>
+                        { article &&
+                            <>
+                                { option[0] != 'view' &&
+                                   <PushArticleDisplay article={article} authorsReference={userReferenceKVs} />
+                                }
+                                { option[0] == 'view' &&
+                                    <p>{article.objectId}</p>
+                                }
+                            </>
+                        }
+                        { !article &&
+                            // TODO: Make LINK
+                            <div>
+                                <p>
+                                    Article Not Found
+                                </p>
+                                <p>
+                                    RETURN TO SELECTION
+                                </p>
+                            </div>
+                        }
+                    </>
                 }
             </Suspense>
         </SimpleVertical>

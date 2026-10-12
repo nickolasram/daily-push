@@ -59,6 +59,8 @@ export interface PushArticleSummary{
     publishedContent?:string;
     headerImage?:string;
     contributors:KVRecord[];
+    published:boolean;
+    latestSavedDate?:string|Date;
 }
 
 export interface KVRecord{
