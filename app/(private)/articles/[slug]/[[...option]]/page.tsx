@@ -1,13 +1,14 @@
 "use server"
 
 import {PushCognitoClass, PushDynamoArticle} from "@/classes";
-import {listAndKVReference, PushArticle, PushArticleSummary} from "@/types";
+import {listAndKVReference, PushArticle, PushArticleSummary, suggestKVFieldValue} from "@/types";
 import {Suspense} from "react";
 import PushArticlePreview from "@/components/pushArticlePreview";
 import Link from "next/link";
 import SimpleVertical from "@/app/components/frameworks/simpleVertical";
 import {getDynamoClient} from "@/globalFunctions/functions";
 import PushArticleDisplay from "@/components/pushArticleDisplay";
+import ArticleEditClientWrapper from "@/app/(private)/articles/components/articleEditClientWrapper";
 
 const Page=async(
     {
@@ -34,6 +35,8 @@ const Page=async(
     })
     let articleSummaries:{ summary:PushArticleSummary,id:string }[] = [];
     let article: PushArticle|undefined;
+    const suggestedKVs:suggestKVFieldValue[] = []
+    const kvReferences:listAndKVReference[] = []
     if (slug==='view') {
         const articles = await PushDynamoArticle.getAllArticles();
         articleSummaries = articles.map(article=>{
@@ -47,6 +50,20 @@ const Page=async(
         const articleResponse = await PushDynamoArticle.get(client, slug)
         if (articleResponse.Item) {
             article = articleResponse.Item as PushArticle
+            if (option[0]=='edit'){
+                for (const user of users.Users!) {
+                    const sub = user.Attributes!.find(obj=>{return obj.Name === 'sub'})
+                    const pUsername = user.Attributes!.find(obj=>{return obj.Name === 'preferred_username'})
+                    if(pUsername?.Value&&sub?.Value){
+                        const reference:suggestKVFieldValue={
+                            value:sub.Value,
+                            display:pUsername.Value,
+                        }
+                        suggestedKVs.push(reference)
+                        kvReferences.push(reference)
+                    }
+                }
+            }
         }
     }
 
@@ -82,13 +99,16 @@ const Page=async(
                                         >
                                             {summary.summary.latestSavedDate==summary.summary.latestUpdatedDate?"Published Up to Date":"Published Not Up to Date"}
                                         </p>
-                                        <div className={'flex gap-1 items-center text-sm md:text-md'}>
+                                        <Link
+                                            className={'flex gap-1 items-center text-sm md:text-md'}
+                                            href={'/articles/'+summary.id+'/edit'}
+                                            target={'_blank'}
+                                        >
                                             <p>Jump to Edit</p>
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-3">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
                                             </svg>
-
-                                        </div>
+                                        </Link>
                                     </div>
                                 </div>
                             ))
@@ -99,11 +119,33 @@ const Page=async(
                     <>
                         { article &&
                             <>
-                                { option[0] != 'view' &&
-                                   <PushArticleDisplay article={article} authorsReference={userReferenceKVs} />
+                                { option[0] == 'edit' &&
+                                    <ArticleEditClientWrapper
+                                        passedArticle={article}
+                                        suggestedKVs={suggestedKVs}
+                                        kvReferences={kvReferences}
+                                    />
                                 }
-                                { option[0] == 'view' &&
-                                    <p>{article.objectId}</p>
+                                { option[0] != 'view' && option[0] != 'edit' &&
+                                    <div>
+                                        <div
+                                            className={'w-full flex justify-end '}
+                                        >
+                                            <Link
+                                                className={'flex w-fit bg-black/40 border-white border-2 gap-2 items-center rounded-full px-3'}
+                                                href={'/articles/'+article.objectId+'/edit'}
+                                                target={'_blank'}
+                                            >
+                                                <p>
+                                                    Edit Article
+                                                </p>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-3">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
+                                                </svg>
+                                            </Link>
+                                        </div>
+                                        <PushArticleDisplay article={article} authorsReference={userReferenceKVs} />
+                                    </div>
                                 }
                             </>
                         }

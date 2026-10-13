@@ -17,7 +17,7 @@ export default async function RootLayout(
 ) {
     const session = await getSession();
     return (
-        <div className={'min-h-screen flex flex-col w-screen'}>
+        <div className={'min-h-screen flex flex-col w-[calc(100vw-20px)]'}>
             <div>
                 <BurgerNav>
                     <BurgerNav.Logo>
