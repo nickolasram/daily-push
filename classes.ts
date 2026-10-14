@@ -167,13 +167,13 @@ export class PushDynamoArticle extends PushDynamoClass{
         const reviewers:ListFieldEntry[] = [];
         for (const user of this.adminSettings) {
             if (user.permission=='admin'){
-                admins.push({value:user.id,object:user.reference,hidden:false});
+                admins.push({value:user.id,object:user.reference,hidden:user.hidden});
             }
             if (user.permission=='editor'){
-                editors.push({value:user.id,object:user.reference,hidden:false});
+                editors.push({value:user.id,object:user.reference,hidden:user.hidden});
             }
             if (user.permission=='reviewer'){
-                reviewers.push({value:user.id,object:user.reference,hidden:false});
+                reviewers.push({value:user.id,object:user.reference,hidden:user.hidden});
             }
         }
         this.adminFormNodes = [
@@ -322,6 +322,59 @@ export class PushDynamoArticle extends PushDynamoClass{
             }
         })
         return [creatorSetting, ...adminPerms, ...editorPerms, ...reviewerPerms]
+    }
+
+    private adminSettingCompare(obj1:articleAdminSetting, obj2:articleAdminSetting){
+        return obj1.id == obj2.id && obj1.reference == obj2.reference && obj1.hidden == obj2.hidden && obj1.permission == obj2.permission
+    }
+
+    public getAdminSettingsUpdate(data:FormData): [boolean, articleAdminSetting[]]{
+        const admins = generateListFieldValues('admins',data)
+        const adminPerms:articleAdminSetting[] = admins.map(adminUser=>{
+            return {
+                id:adminUser.value,
+                reference:adminUser.object,
+                hidden:adminUser.hidden,
+                permission: 'admin',
+            }
+        })
+        const editors = generateListFieldValues('editors',data)
+        const editorPerms:articleAdminSetting[] = editors.map(adminUser=>{
+            return {
+                id:adminUser.value,
+                reference:adminUser.object,
+                hidden:adminUser.hidden,
+                permission: 'editor',
+            }
+        })
+        const reviewers = generateListFieldValues('reviewers',data)
+        const reviewerPerms:articleAdminSetting[] = reviewers.map(adminUser=>{
+            return {
+                id:adminUser.value,
+                reference:adminUser.object,
+                hidden:adminUser.hidden,
+                permission: 'reviewer',
+            }
+        })
+        const retrievedSettings = [...adminPerms,...editorPerms,...reviewerPerms]
+        const settingsLength = adminPerms.length+editorPerms.length+reviewerPerms.length+1;
+        const creatorSetting = this.adminSettings.find(obj=>{return obj.permission == 'creator'})
+        if (settingsLength!=this.adminSettings.length) {
+            return [true, [...retrievedSettings,creatorSetting!]]
+        }
+        for (const value of retrievedSettings) {
+            const currentSetting = this.adminSettings.find(obj=>{return obj.id == value.id})
+            if (!currentSetting) {
+                return [true, [...retrievedSettings,creatorSetting!]]
+            }
+            if (!this.adminSettingCompare(value,currentSetting)) {
+                console.log(value)
+                console.log(currentSetting)
+                return [true, [...retrievedSettings,creatorSetting!]]
+            }
+        }
+        return [false,[]]
+
     }
 
     public static async handleSettingsSubmitPatch(
@@ -539,7 +592,8 @@ export class PushDynamoArticle extends PushDynamoClass{
             savedContent:this.savedContent,
             lastSavedDate:this.lastSavedDate,
             formSettings:this.formSettings,
-            adminSettings:this.adminSettings
+            adminSettings:this.adminSettings,
+            objectId:this.articleId
         }
     }
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import {
-    articleAdminFormSettings,
+    articleAdminFormSettings, articleAdminSetting,
     articleFormSettings,
     listAndKVReference,
     PushArticle,
@@ -10,6 +10,7 @@ import {
 import {SubmitEvent, useState} from "react";
 import ArticleForm from "@/app/components/articleElements";
 import {PushDynamoArticle} from "@/classes";
+import toast from "react-hot-toast";
 
 interface props{
     kvReferences:listAndKVReference[]
@@ -41,7 +42,47 @@ const ArticleEditClientWrapper=(
     }
     const handleAdminSubmit=(event: SubmitEvent<HTMLFormElement>)=>{
         event.preventDefault();
-        alert('admin submitted');
+        const data = new FormData(event.target);
+        const changes = article.getAdminSettingsUpdate(data)
+        if (!changes[0]){
+            toast.error('No Changes to Update.')
+        } else {
+            const plainArticle = article.plainArticle();
+            const updatedArticle = new PushDynamoArticle(plainArticle);
+            updatedArticle.adminSettings = changes[1];
+            updatedArticle.setFormSettings(articleSettings);
+            updatedArticle.setAdminFormSettings(adminSettings);
+            setArticle(updatedArticle);
+            toast.promise(
+                fetch('/api/articleAdmin', {
+                        method:"PATCH",
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            articleId: updatedArticle.articleId,
+                            adminSettings:changes[1],
+                        }),
+                    }
+                ),
+                {
+                    loading: `Attempting to Update Perms...`,
+                    success: `Successfully Updated Perms...`,
+                    error: () => {
+                        return `Error Updating Perms...`
+                    },
+                },
+                {
+                    style: {
+                        minWidth: '250px'
+                    },
+                    success: {
+                        duration: 1000,
+                    },
+                    error: {
+                        duration: 500,
+                    }
+                }
+            )
+        }
     }
     return (
         <div className="mt-6">
