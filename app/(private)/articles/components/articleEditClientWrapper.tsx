@@ -38,14 +38,41 @@ const ArticleEditClientWrapper=(
     const [article,setArticle] = useState(freshArticle);
     const handleSubmit=(event: SubmitEvent<HTMLFormElement>)=>{
         event.preventDefault();
-        alert('submitted');
+        const btnPressed = article.getControlValue(event)
+        const articleString = JSON.stringify(article.plainArticle())
+        toast.promise(
+            article.handleSubmit(event,article.articleId?articleString??'':undefined),
+            {
+                loading: `Attempting to ${btnPressed=='save'?'Save':'Publish'} Article...`,
+                success: (response) => {
+                    if(!response.ok){
+                        return 'No Changes Detected'
+                    }
+                    return `Successfully ${btnPressed=='save'?'Save':'Publish'} Article.`
+                },
+                error: () => {
+                    return `Error ${btnPressed=='save'?'Saving':'Publishing'} Article.`
+                },
+            },
+            {
+                style: {
+                    minWidth: '250px'
+                },
+                success: {
+                    duration: 1000,
+                },
+                error: {
+                    duration: 500,
+                }
+            }
+        )
     }
     const handleAdminSubmit=(event: SubmitEvent<HTMLFormElement>)=>{
         event.preventDefault();
         const data = new FormData(event.target);
         const changes = article.getAdminSettingsUpdate(data)
         if (!changes[0]){
-            toast.error('No Changes to Update.')
+            toast.success('No Changes to Update.')
         } else {
             const plainArticle = article.plainArticle();
             const updatedArticle = new PushDynamoArticle(plainArticle);

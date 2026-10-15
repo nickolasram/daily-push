@@ -963,6 +963,15 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                             <Field  className="flex"
                                     style={{flexDirection:field.labelPlacement??labelPlacementDefault??'column'}}>
                                 <Label>{field.label??field.name}</Label>
+                                { (field.defaultValue as string)?.length > 0 &&
+                                    <div className={'max-w-40 w-fit my-6 border flex justify-center items-center'}>
+                                        <img
+                                            src={field.defaultValue as string}
+                                            alt={'Image File Preview'}
+                                            className={'object-contain'}
+                                        />
+                                    </div>
+                                }
                                 <Input
                                     onChange={(event)=>{
                                         const files = event.target.files??[]

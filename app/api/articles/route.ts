@@ -3,7 +3,16 @@ import {PushDynamoArticle} from "@/classes";
 
 export async function POST(req: NextRequest) {
     try {
-        PushDynamoArticle.post(req)
+        await PushDynamoArticle.post(req)
+        return NextResponse.json({success: true}, {status:200});
+    } catch (error) {
+        return NextResponse.json({error: error}, {status:500});
+    }
+}
+
+export async function PATCH(req: NextRequest) {
+    try {
+        await PushDynamoArticle.patch(req)
         return NextResponse.json({success: true}, {status:200});
     } catch (error) {
         return NextResponse.json({error: error}, {status:500});
