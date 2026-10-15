@@ -1,7 +1,13 @@
 "use server"
 
 import {PushCognitoClass, PushDynamoArticle} from "@/classes";
-import {listAndKVReference, PushArticle, PushArticleSummary, suggestKVFieldValue} from "@/types";
+import {
+    articleAdminFormSettings,
+    listAndKVReference,
+    PushArticle,
+    PushArticleSummary,
+    suggestKVFieldValue
+} from "@/types";
 import {Suspense} from "react";
 import PushArticlePreview from "@/components/pushArticlePreview";
 import Link from "next/link";
@@ -9,6 +15,8 @@ import SimpleVertical from "@/app/components/frameworks/simpleVertical";
 import {getDynamoClient} from "@/globalFunctions/functions";
 import PushArticleDisplay from "@/components/pushArticleDisplay";
 import ArticleEditClientWrapper from "@/app/(private)/articles/components/articleEditClientWrapper";
+import ArticleWriteClientWrapper from "@/app/(private)/articles/components/articleWriteClientWrapper";
+import {getSession} from "@/session/actions";
 
 const Page=async(
     {
@@ -18,6 +26,7 @@ const Page=async(
     }
 )=>{
     const {slug,option}= await params;
+    const userSub = await getSession().then(data=>data.sub as string);
     const users = await PushCognitoClass.listAllUsers()
     const userReferenceKVs = (users.Users??[]).map(user => {
         const sub = user.Attributes!.find(obj=>obj.Name=='sub')?.Value??'User sub not found'
@@ -33,6 +42,10 @@ const Page=async(
             }
         }
     })
+    const adminSettings:articleAdminFormSettings = {
+        reference: [],
+        suggested: []
+    }
     let articleSummaries:{ summary:PushArticleSummary,id:string }[] = [];
     let article: PushArticle|undefined;
     const suggestedKVs:suggestKVFieldValue[] = []
@@ -46,22 +59,31 @@ const Page=async(
             }
         })
     } else {
-        const client = await getDynamoClient();
-        const articleResponse = await PushDynamoArticle.get(client, slug)
-        if (articleResponse.Item) {
-            article = articleResponse.Item as PushArticle
-            if (option[0]=='edit'){
-                for (const user of users.Users!) {
-                    const sub = user.Attributes!.find(obj=>{return obj.Name === 'sub'})
-                    const pUsername = user.Attributes!.find(obj=>{return obj.Name === 'preferred_username'})
-                    if(pUsername?.Value&&sub?.Value){
-                        const reference:suggestKVFieldValue={
-                            value:sub.Value,
-                            display:pUsername.Value,
-                        }
-                        suggestedKVs.push(reference)
-                        kvReferences.push(reference)
+        const setReferences =()=>{
+            for (const user of users.Users!) {
+                const sub = user.Attributes!.find(obj=>{return obj.Name === 'sub'})
+                const pUsername = user.Attributes!.find(obj=>{return obj.Name === 'preferred_username'})
+                if(pUsername?.Value&&sub?.Value){
+                    const reference:suggestKVFieldValue={
+                        value:sub.Value,
+                        display:pUsername.Value,
                     }
+                    suggestedKVs.push(reference)
+                    kvReferences.push(reference)
+                    adminSettings.reference!.push(reference)
+                    adminSettings.suggested!.push(reference)
+                }
+            }
+        }
+        if (slug=='new'){
+            setReferences()
+        } else {
+            const client = await getDynamoClient();
+            const articleResponse = await PushDynamoArticle.get(client, slug)
+            if (articleResponse.Item) {
+                article = articleResponse.Item as PushArticle
+                if (option[0]=='edit'){
+                    setReferences()
                 }
             }
         }
@@ -115,7 +137,23 @@ const Page=async(
                         }
                     </>
                 }
-                { slug !== 'view' &&
+                { slug === 'new' &&
+                    <ArticleWriteClientWrapper
+                        userSub={userSub!}
+                        adminSettings={adminSettings}
+                        suggestedKVs={suggestedKVs}
+                        kvReferences={kvReferences}
+                        authorKV={
+                            {
+                                key: 'Author',
+                                value: userSub ?? '',
+                                object: true,
+                                hidden: false
+                            }
+                        }
+                    />
+                }
+                { slug !== 'view' && slug !== 'new' &&
                     <>
                         { article &&
                             <>

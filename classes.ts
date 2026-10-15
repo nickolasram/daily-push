@@ -258,7 +258,7 @@ export class PushDynamoArticle extends PushDynamoClass{
         return event.nativeEvent.submitter?.dataset['value'] as 'save'|'publish'
     }
 
-    public async handleSubmit(event:SubmitEvent<HTMLFormElement>){
+    public async handleSubmit(event:SubmitEvent<HTMLFormElement>,articleString?:string){
         const data = new FormData(event.currentTarget);
         const controlValue = this.getControlValue(event)
         data.append('controlValue', controlValue)
@@ -283,7 +283,10 @@ export class PushDynamoArticle extends PushDynamoClass{
         const contributors = generateKVRecord('contributors', data)
         const contributorsString = JSON.stringify({contributors:contributors})
         data.append('contributors', contributorsString)
-        await fetch('/api/articles',
+        if (this.articleId){
+            data.append('articleString', articleString??'')
+        }
+        return fetch('/api/articles',
             {
                 method: this.articleId?'PATCH':'POST',
                 body: data
@@ -374,7 +377,6 @@ export class PushDynamoArticle extends PushDynamoClass{
             }
         }
         return [false,[]]
-
     }
 
     public static async handleSettingsSubmitPatch(
@@ -545,21 +547,129 @@ export class PushDynamoArticle extends PushDynamoClass{
         }
     }
 
-    public static patch(client:DynamoDBDocumentClient,
-                        detectedChanges:dynamoObject,
-                        table:string,
-                        objectId:string,){
-        if (objectId===''){
-            throw new Error('no objectId provided')
+    private static contributorsDifference =(newList:KVRecord[],oldList:KVRecord[])=>{
+        if (newList.length!==oldList.length){
+            return true
         }
+        for (const item of newList){
+            const itemValue = item.value
+            const prospectiveRecord = oldList.find(obj=>{return obj.value===itemValue})
+            if (!prospectiveRecord){
+                return true
+            }
+            if (
+                item.hidden !== prospectiveRecord.hidden ||
+                item.object !== prospectiveRecord.object ||
+                item.key !== prospectiveRecord.key
+            ) {
+                return true
+            }
+        }
+        return false;
+    }
+
+    public static async patch(req: NextRequest) {
+        const formData = await req.formData()
+        const oldArticle = JSON.parse(formData.get('articleString') as string) as PushArticle
+        const changes:dynamoObject = {}
+        const file = formData.get('headerImage') as File|undefined
+        if (file && file.name!=='' && file.size!==0){
+            let name: string = file.name;
+            name = name.replace(/\s/g, "");
+            name = sanitize(name)
+            name = uuidv4() + name
+            const bytes = await file.arrayBuffer();
+            const imageBuffer = Buffer.from(bytes);
+            const s3Client = new S3Client({});
+            const command = new PutObjectCommand({
+                Bucket: process.env.NEXT_PUBLIC_IMAGE_BUCKET,
+                Key: name,
+                Body: imageBuffer,
+            });
+            try{
+                await s3Client.send(command);
+                const address = process.env.NEXT_PUBLIC_BUCKET_ADDRESS
+                changes['headerImage'] = address+name;
+            } catch (caught) {
+                if (
+                    caught instanceof S3ServiceException &&
+                    caught.name === "EntityTooLarge"
+                ) {
+                    console.error(
+                        `Error from S3 while uploading object to bucket. The object was too large. To upload objects larger than 5GB, use the S3 console (160GB max) or the multipart upload API (5TB max).`,
+                    );
+                } else if (caught instanceof S3ServiceException) {
+                    console.error(
+                        `Error from S3 while uploading object to bucket.  ${caught.name}: ${caught.message}`,
+                    );
+                } else {
+                    throw caught;
+                }
+            }
+        }
+        const client = await getDynamoClient()
+        const table = process.env.NEXT_PUBLIC_TABLE_NAME as string
+        const updateTime = new Date().toString();
+        const controlValue = formData.get('controlValue');
+
+        const heading = formData.get('heading') as string;
+        if (heading!=oldArticle.heading){
+            changes['heading'] = heading;
+        }
+        const prospectiveSubheading = formData.get('subheading')
+        let subheading:string|undefined;
+        if (prospectiveSubheading&&(prospectiveSubheading==''||(prospectiveSubheading as string).length==0)){
+            subheading=undefined
+        } else {
+            subheading = prospectiveSubheading as string;
+        }
+        if (subheading&&subheading!=oldArticle.heading){
+            changes['subheading'] = subheading;
+        }
+        const newContributors=JSON.parse(formData.get('contributors') as string).contributors as KVRecord[]
+        const contributorsChanged = PushDynamoArticle.contributorsDifference(newContributors,oldArticle.contributors)
+        if (contributorsChanged){
+            changes['contributors'] = contributorsChanged
+        }
+        if (controlValue=='save'){
+            const savedContent=formData.get('content')
+            const oldSavedContent = oldArticle.savedContent
+            if (savedContent!=oldSavedContent){
+                if (!(savedContent=='[BODY]' && (oldSavedContent==''||oldSavedContent==undefined))){
+                    changes['savedContent'] = savedContent as string
+                }
+            }
+        } else {
+            const publishedContent = formData.get('content')
+            const oldPublishedContent = oldArticle.publishedContent
+            if (publishedContent!=oldPublishedContent){
+                if (!(publishedContent=='[BODY]' && (oldPublishedContent==''||oldPublishedContent==undefined))){
+                    changes['publishedContent'] = publishedContent as string
+                }
+            }
+            if (!oldArticle.published){
+                changes['published'] = true
+            }
+        }
+        const changesAmount = Object.keys(changes).length
+        if (changesAmount==0){
+            throw new Error('No Changes')
+        }
+
+        if (controlValue=='save'){
+            changes['lastSavedDate'] = updateTime
+        } else {
+            changes['latestUpdatedDate'] = updateTime
+         }
+
         return super.dynamoPatch(
             client,
             table,
             {
                 objectType:'article',
-                objectId:objectId,
+                objectId:oldArticle.objectId as string,
             },
-            detectedChanges
+            changes
         )
     }
 
