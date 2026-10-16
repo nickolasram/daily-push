@@ -574,10 +574,15 @@ export class PushDynamoArticle extends PushDynamoClass{
         const changes:dynamoObject = {}
         const file = formData.get('headerImage') as File|undefined
         if (file && file.name!=='' && file.size!==0){
-            let name: string = file.name;
-            name = name.replace(/\s/g, "");
-            name = sanitize(name)
-            name = uuidv4() + name
+            let name:string;
+            if (!oldArticle.headerImage){
+                name = file.name;
+                name = name.replace(/\s/g, "");
+                name = sanitize(name)
+                name = uuidv4() + name
+            } else {
+                name = oldArticle.headerImage?.split('/')[oldArticle.headerImage?.split('/').length-1]
+            }
             const bytes = await file.arrayBuffer();
             const imageBuffer = Buffer.from(bytes);
             const s3Client = new S3Client({});
@@ -629,7 +634,7 @@ export class PushDynamoArticle extends PushDynamoClass{
         const newContributors=JSON.parse(formData.get('contributors') as string).contributors as KVRecord[]
         const contributorsChanged = PushDynamoArticle.contributorsDifference(newContributors,oldArticle.contributors)
         if (contributorsChanged){
-            changes['contributors'] = contributorsChanged
+            changes['contributors'] = newContributors
         }
         if (controlValue=='save'){
             const savedContent=formData.get('content')
