@@ -36,6 +36,7 @@ import {getDynamoClient} from "@/globalFunctions/functions";
 import sanitize from "sanitize-filename";
 import {PutObjectCommand, S3Client, S3ServiceException,} from "@aws-sdk/client-s3";
 import {NextRequest, NextResponse} from "next/server";
+import {ArticleBodySwitch, ArticleVisibilityToggle} from "@/app/components/articleElements";
 
 export abstract class PushDynamoClass {
 
@@ -160,6 +161,7 @@ export class PushDynamoArticle extends PushDynamoClass{
             { name: 'subheading', type: 'text', label: 'Subheading', defaultValue: this.heading},
             { name: 'headerImage', type: 'image', label: 'Header Image', defaultValue: this.headerImage},
             contributorNode,
+            {name: 'contentSelectionSwitch', type:'custom', node:ArticleBodySwitch()},
             { name: 'content', type:'richTextField', label: 'Body', defaultValue:this.savedContent },
         ]
         const admins:ListFieldEntry[] = [];
@@ -200,6 +202,12 @@ export class PushDynamoArticle extends PushDynamoClass{
                 label: 'Reviewers',
                 providedListFieldEntries: reviewers
             },
+            {
+                name: 'articleVisibility',
+
+                type: 'custom',
+                node: ArticleVisibilityToggle()
+            }
         ]
     }
 
