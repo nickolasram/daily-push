@@ -188,14 +188,16 @@ const Page=async(
                             </>
                         }
                         { !article &&
-                            // TODO: Make LINK
-                            <div>
-                                <p>
+                            <div className={'w-full flex flex-col min-h-100 bg-black/50 rounded-2xl mt-20 h-full justify-center items-center'}>
+                                <p className={'text-center'}>
                                     Article Not Found
                                 </p>
-                                <p>
+                                <Link
+                                    href={'/articles/view'}
+                                    className={'underline'}
+                                >
                                     RETURN TO SELECTION
-                                </p>
+                                </Link>
                             </div>
                         }
                     </>
