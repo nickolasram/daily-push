@@ -36,7 +36,7 @@ import {getDynamoClient} from "@/globalFunctions/functions";
 import sanitize from "sanitize-filename";
 import {PutObjectCommand, S3Client, S3ServiceException,} from "@aws-sdk/client-s3";
 import {NextRequest, NextResponse} from "next/server";
-import {ArticleBodySwitch, ArticleVisibilityToggle} from "@/app/components/articleElements";
+import {ArticleBodySwitch, ArticleVisibilityToggle} from "@/app/components/articleServerElements";
 
 export abstract class PushDynamoClass {
 
