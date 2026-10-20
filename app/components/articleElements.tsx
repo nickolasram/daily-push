@@ -91,7 +91,10 @@ const ArticleForm = (
                         inputRoundedDefault={inputRoundedDefault}
                     />
                 </div>
-                <div className={`w-full h-full row-span-full col-span-full bg-white ${settings?'z-50':'-z-1'}`}>
+                <div className={`w-full h-full row-span-full col-span-full text-black bg-white ${settings?'z-50':'-z-1'}`}>
+                    <h3 className={'font-semibold text-lg ml-6 mt-6'}>
+                        Admin Settings
+                    </h3>
                     <PushForm
                         fields={settingFields}
                         onSubmit={onSettingsSubmit}
@@ -99,7 +102,7 @@ const ArticleForm = (
                         rounded={rounded}
                         inputRoundedDefault={inputRoundedDefault}
                     />
-                    <div className={'w-full border-0 border-t-1 border-black text-black p-6'}>
+                    <div className={'w-full border-0 border-t-1 border-black p-6'}>
                         <p>Input xxxx to enable deletion</p>
                         <input type={'text'} className={'border-1 mb-2 border-black'} />
                         <Button
@@ -109,11 +112,14 @@ const ArticleForm = (
                         </Button>
                     </div>
                 </div>
-                <div className={`w-full h-full text-black p-6 row-span-full col-span-full bg-white ${info?'z-50':'-z-1'}`}>
-                    <p>STATUS: {article?.published?'Public':'Not Public'}</p>
-                    <p>Saved Date</p>
-                    <p>Updated Date</p>
-                    <p>First Updated Date</p>
+                <div className={`w-full h-full text-black p-6 row-span-full flex flex-col gap-3 col-span-full bg-white ${info?'z-50':'-z-1'}`}>
+                    <h3 className={'font-semibold text-lg'}>
+                        Article Details
+                    </h3>
+                    <p>Public: {article?.published?'True':'False'}</p>
+                    <p>Latest Save: {article?.lastSavedDate?new Date(article.lastSavedDate).toLocaleString():'No Saved Draft'}</p>
+                    <p>Latest Update: {article?.latestUpdatedDate?new Date(article.latestUpdatedDate).toLocaleString():'Not Published Content'}</p>
+                    <p>First Published: {article?.firstPublishedDate?new Date(article.firstPublishedDate).toLocaleString():'Not Published'}</p>
                     <p>Creation Date</p>
                     <p>Open Saved draft in new window</p>
                     <p>Open Published Content in new window</p>

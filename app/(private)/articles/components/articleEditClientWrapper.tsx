@@ -118,6 +118,7 @@ const ArticleEditClientWrapper=(
                 onSubmit={handleSubmit}
                 settingFields={article.adminFormNodes}
                 onSettingsSubmit={handleAdminSubmit}
+                article={article.plainArticle()}
             />
         </div>
     )
