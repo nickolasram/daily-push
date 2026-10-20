@@ -18,3 +18,12 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({error: error}, {status:500});
     }
 }
+
+export async function DELETE(req: NextRequest) {
+    try {
+        await PushDynamoArticle.delete(req)
+        return NextResponse.json({success: true}, {status:200});
+    } catch (error) {
+        return NextResponse.json({error: error}, {status:500});
+    }
+}

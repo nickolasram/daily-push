@@ -686,6 +686,30 @@ export class PushDynamoArticle extends PushDynamoClass{
         )
     }
 
+    public static async delete(req:NextRequest){
+        const body = await req.json();
+        const data = body.data as string;
+        const client = await getDynamoClient()
+        const table = process.env.NEXT_PUBLIC_TABLE_NAME as string
+        const key={
+                objectType:'article',
+                objectId:data,
+            }
+            return super.dynamoDelete(
+                client,
+                table,
+                key
+            )
+    }
+
+    public async deleteArticle(){
+        return fetch('/api/articles',
+            {
+                method: 'DELETE',
+                body: JSON.stringify({data:this.articleId})
+            })
+    }
+
     public plainSummary():PushArticleSummary{
         const contributors = this.formNodes.find(obj=>{return obj.name=='contributors'})?.providedKVs as KVRecord[];
         return {

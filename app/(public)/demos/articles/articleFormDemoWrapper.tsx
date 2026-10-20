@@ -105,6 +105,9 @@ const ArticleFormDemoWrapper=({userSub,adminSettings,suggestedKVs,kvReferences,a
             toast.success("Updated Admin Perms.");
         }
     }
+    const onDelete=()=>{
+        console.log("delete");
+    }
     return(
         <div className="mt-6">
             <ArticleForm
@@ -112,6 +115,7 @@ const ArticleFormDemoWrapper=({userSub,adminSettings,suggestedKVs,kvReferences,a
                 onSubmit={handleSubmit}
                 settingFields={article.adminFormNodes}
                 onSettingsSubmit={handleSettingsSubmit}
+                onDelete={onDelete}
             />
         </div>
     )

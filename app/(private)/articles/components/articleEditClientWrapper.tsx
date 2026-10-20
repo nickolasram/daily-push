@@ -1,16 +1,17 @@
 "use client"
 
 import {
-    articleAdminFormSettings, articleAdminSetting,
+    articleAdminFormSettings,
     articleFormSettings,
     listAndKVReference,
     PushArticle,
     suggestKVFieldValue
 } from "@/types";
 import {SubmitEvent, useState} from "react";
-import ArticleForm from "@/app/components/articleElements";
 import {PushDynamoArticle} from "@/classes";
 import toast from "react-hot-toast";
+import {useRouter} from "next/navigation";
+import ArticleForm from "@/app/components/articleElements";
 
 interface props{
     kvReferences:listAndKVReference[]
@@ -24,6 +25,7 @@ const ArticleEditClientWrapper=(
     }
     :props
 )=>{
+    const router = useRouter();
     const freshArticle = new PushDynamoArticle(passedArticle);
     const articleSettings:articleFormSettings = {
         suggestedKVs: suggestedKVs,
@@ -111,6 +113,31 @@ const ArticleEditClientWrapper=(
             )
         }
     }
+    const handleDelete = () => {
+        toast.promise(
+            article.deleteArticle(),
+            {
+                loading: `Deleting ${article.heading??'Article'}...`,
+                success: 'Successfully Deleted Article',
+                error: () => {
+                    return `Error Deleting Article.`
+                },
+            },
+            {
+                style: {
+                    minWidth: '250px'
+                },
+                success: {
+                    duration: 1000,
+                },
+                error: {
+                    duration: 500,
+                }
+            }
+        ).then(() => {
+            router.push('/articles/view')
+        })
+    }
     return (
         <div className="mt-6">
             <ArticleForm
@@ -119,6 +146,7 @@ const ArticleEditClientWrapper=(
                 settingFields={article.adminFormNodes}
                 onSettingsSubmit={handleAdminSubmit}
                 article={article.plainArticle()}
+                onDelete={handleDelete}
             />
         </div>
     )

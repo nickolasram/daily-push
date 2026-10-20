@@ -2,7 +2,7 @@
 
 import PushForm, {pushFormNode} from "@/app/components/PushForm";
 import {RefObject, SubmitEvent, useState} from "react";
-import {Button} from "@headlessui/react";
+import {Button, Input} from "@headlessui/react";
 import {PushArticle} from "@/types";
 
 export const ArticleControls = () => {
@@ -24,6 +24,7 @@ interface ArticleFormProps {
     settingFields: pushFormNode[],
     onSettingsSubmit: (event: SubmitEvent<HTMLFormElement>)=>void,
     article?:PushArticle,
+    onDelete?: ()=>void,
 }
 
 const ArticleForm = (
@@ -36,11 +37,13 @@ const ArticleForm = (
         ref,
         onSettingsSubmit,
         settingFields,
-        article
+        article,
+        onDelete
     }:ArticleFormProps
 ) => {
     const [settings,setSettings] = useState(false)
     const [info,setInfo] = useState(false)
+    const [deletionInputValue,setDeletionInputValue] = useState('')
     return (
         <div className={'w-fit bg-white'}>
             <div className={'w-full h-14 gap-6 px-6 pb-1 flex justify-start items-end'}>
@@ -102,15 +105,23 @@ const ArticleForm = (
                         rounded={rounded}
                         inputRoundedDefault={inputRoundedDefault}
                     />
-                    <div className={'w-full border-0 border-t-1 border-black p-6'}>
-                        <p>Input xxxx to enable deletion</p>
-                        <input type={'text'} className={'border-1 mb-2 border-black'} />
-                        <Button
-                            className={'block'}
-                        >
-                            Delete
-                        </Button>
-                    </div>
+                    {onDelete&&
+                        <div className={'w-full border-0 border-t-1 border-black p-6'}>
+                            <p className={'italic'}>Input {article?.objectId?.split('-')[0]} to enable deletion</p>
+                            <Input
+                                type={'text'}
+                                className={'border-1 mb-2 border-black min-w-65'}
+                                onChange={e => {setDeletionInputValue(e.currentTarget.value)}}
+                            />
+                            <Button
+                                className={'block disabled:opacity-25 disabled:cursor-default cursor-pointer'}
+                                disabled={deletionInputValue!=article?.objectId?.split('-')[0]}
+                                onClick={onDelete}
+                            >
+                                Delete
+                            </Button>
+                        </div>
+                    }
                 </div>
                 <div className={`w-full h-full text-black p-6 row-span-full flex flex-col gap-3 col-span-full bg-white ${info?'z-50':'-z-1'}`}>
                     <h3 className={'font-semibold text-lg'}>
