@@ -52,6 +52,7 @@ const PushArticleDisplay=({article,authorsReference}:props)=>{
             </div>
             {article.headerImage &&
              <div className={'w-full h-60 place-content-center flex justify-center'}>
+                 <img src={article.headerImage} alt={'Article Header Image'}/>
                  <Image
                      src={article.headerImage}
                      alt={'Article Header Image'}

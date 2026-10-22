@@ -34,7 +34,7 @@ import {SubmitEvent} from "react";
 import {generateKVRecord, generateListFieldValues, pushFormNode} from "@/app/components/PushForm";
 import {getDynamoClient} from "@/globalFunctions/functions";
 import sanitize from "sanitize-filename";
-import {PutObjectCommand, S3Client, S3ServiceException,} from "@aws-sdk/client-s3";
+import {DeleteObjectCommand, PutObjectCommand, S3Client, S3ServiceException,} from "@aws-sdk/client-s3";
 import {NextRequest, NextResponse} from "next/server";
 import {ArticleBodySwitch, ArticleVisibilityToggle} from "@/app/components/articleServerElements";
 
@@ -574,6 +574,37 @@ export class PushDynamoArticle extends PushDynamoClass{
             }
         }
         return false;
+    }
+
+    public static async deleteHeaderFromS3(givenImageName:string,givenArticleId:string){
+        const imageName = givenImageName.split('/')[givenImageName.split('/').length-1]
+        const s3Client = new S3Client({})
+        const deleteCommand = new DeleteObjectCommand(
+            {
+                Bucket: process.env.NEXT_PUBLIC_IMAGE_BUCKET,
+                Key: imageName,
+            }
+        )
+        try {
+            await s3Client.send(deleteCommand);
+        } catch (e) {
+            throw e;
+        }
+        const client = await getDynamoClient();
+        try {
+            const updateCommand = new UpdateCommand({
+                TableName: process.env.NEXT_PUBLIC_TABLE_NAME as string,
+                Key: {
+                    objectType:'article',
+                    objectId:givenArticleId,
+                },
+                UpdateExpression: 'REMOVE headerImage'
+            });
+            return await client.send(updateCommand);
+        } catch (e) {
+            throw e;
+        }
+
     }
 
     public static async patch(req: NextRequest) {

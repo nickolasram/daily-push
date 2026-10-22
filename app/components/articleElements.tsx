@@ -4,6 +4,28 @@ import PushForm, {pushFormNode} from "@/app/components/PushForm";
 import {RefObject, SubmitEvent, useState} from "react";
 import {Button, Input} from "@headlessui/react";
 import {PushArticle} from "@/types";
+import Image from "next/image";
+import PushDialog from "@/app/components/pushDialog";
+
+
+const shimmer = () => `
+<svg width="250" height="250" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="g">
+      <stop stop-color="#bbb" offset="20%" />
+      <stop stop-color="#222" offset="50%" />
+      <stop stop-color="#bbb" offset="70%" />
+    </linearGradient>
+  </defs>
+  <rect width="250" height="250" fill="#bbb" />
+  <rect id="r" width="250" height="250" fill="url(#g)" />
+  <animate xlink:href="#r" attributeName="x" from="-250" to="250" dur="500ms" repeatCount="indefinite"  />
+</svg>`;
+
+const toBase64 = (str: string) =>
+    typeof window === "undefined"
+        ? Buffer.from(str).toString("base64")
+        : window.btoa(str);
 
 export const ArticleControls = () => {
     return (
@@ -25,6 +47,7 @@ interface ArticleFormProps {
     onSettingsSubmit: (event: SubmitEvent<HTMLFormElement>)=>void,
     article?:PushArticle,
     onDelete?: ()=>void,
+    onRemoveHeader?: ()=>void,
 }
 
 const ArticleForm = (
@@ -38,12 +61,14 @@ const ArticleForm = (
         onSettingsSubmit,
         settingFields,
         article,
-        onDelete
+        onDelete,
+        onRemoveHeader,
     }:ArticleFormProps
 ) => {
     const [settings,setSettings] = useState(false)
     const [info,setInfo] = useState(false)
     const [deletionInputValue,setDeletionInputValue] = useState('')
+    const [headerImageDialogOpen, setHeaderImageDialogOpen] = useState(false)
     return (
         <div className={'w-fit bg-white'}>
             <div className={'w-full h-14 gap-6 px-6 pb-1 flex justify-start items-end'}>
@@ -96,7 +121,7 @@ const ArticleForm = (
                 </div>
                 <div className={`w-full h-full row-span-full col-span-full text-black bg-white ${settings?'z-50':'-z-1'}`}>
                     <h3 className={'font-semibold text-lg ml-6 mt-6'}>
-                        Admin Settings
+                        Other Settings
                     </h3>
                     <PushForm
                         fields={settingFields}
@@ -105,6 +130,52 @@ const ArticleForm = (
                         rounded={rounded}
                         inputRoundedDefault={inputRoundedDefault}
                     />
+                    {article?.headerImage && onRemoveHeader &&
+                        <div className={'p-6'}>
+                            <p>Current header image</p>
+                            <Image
+                                priority
+                                src={article.headerImage}
+                                alt={'Article Header Image'}
+                                width={240}
+                                height={240}
+                                className={'my-3'}
+                                placeholder={`data:image/svg+xml;base64,${toBase64(shimmer())}`}
+                                style={
+                                    {
+                                        objectFit: 'contain',
+                                    }
+                                }
+                            />
+                            <Button
+                                onClick={()=>{setHeaderImageDialogOpen(true)}}
+                            >
+                                Delete Current Header Image
+                            </Button>
+                            <PushDialog
+                                open={headerImageDialogOpen}
+                                setOpen={setHeaderImageDialogOpen}
+                                title={"Delete Header Image Confirmation"}
+                            >
+                                <div className="p-6">
+                                    <Button
+                                        onClick={()=>{
+                                            onRemoveHeader();
+                                            setHeaderImageDialogOpen(false);
+                                        }
+                                    }
+                                    >
+                                        Confirm
+                                    </Button>
+                                    <Button className={'bg-red-300 ml-6'}
+                                        onClick={()=>{setHeaderImageDialogOpen(false)}}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </div>
+                            </PushDialog>
+                        </div>
+                    }
                     {onDelete&&
                         <div className={'w-full border-0 border-t-1 border-black p-6'}>
                             <p className={'italic'}>Input {article?.objectId?.split('-')[0]} to enable deletion</p>
