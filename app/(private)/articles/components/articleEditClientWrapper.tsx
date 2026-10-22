@@ -138,6 +138,42 @@ const ArticleEditClientWrapper=(
             router.push('/articles/view')
         })
     }
+    const handleRemoveHeaderImage=()=>{
+        const plainArticle = article.plainArticle();
+        const headerImageName = plainArticle.headerImage!.split('/')[plainArticle.headerImage!.split('/').length - 1];
+        plainArticle.headerImage = undefined;
+        const updatedArticle = new PushDynamoArticle(plainArticle);
+        updatedArticle.setFormSettings(articleSettings);
+        updatedArticle.setAdminFormSettings(adminSettings);
+        setArticle(updatedArticle);
+        toast.promise(
+            fetch('/api/articleImage', {
+                method:"DELETE",
+                body: JSON.stringify({
+                   image: headerImageName,
+                    id:plainArticle.objectId
+                }),
+            }),
+            {
+                loading: `Attempting to Delete Header Image...`,
+                success: `Successfully Deleted Header Image...`,
+                error: () => {
+                    return `Error Deleting Header Image...`
+                },
+            },
+            {
+                style: {
+                    minWidth: '250px'
+                },
+                success: {
+                    duration: 1000,
+                },
+                error: {
+                    duration: 500,
+                }
+            }
+        )
+    }
     return (
         <div className="mt-6">
             <ArticleForm
@@ -147,6 +183,7 @@ const ArticleEditClientWrapper=(
                 onSettingsSubmit={handleAdminSubmit}
                 article={article.plainArticle()}
                 onDelete={handleDelete}
+                onRemoveHeader={handleRemoveHeaderImage}
             />
         </div>
     )

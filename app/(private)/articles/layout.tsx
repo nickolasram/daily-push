@@ -11,8 +11,6 @@ export default async function RootLayout(
         children,
     }: Readonly<{
         children: ReactNode;
-        login: ReactNode;
-        main: ReactNode;
     }>
 ) {
     const session = await getSession();
