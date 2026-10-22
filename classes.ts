@@ -464,8 +464,15 @@ export class PushDynamoArticle extends PushDynamoClass{
         let imageAddress:string|undefined;
         if (file && file.name!=='' && file.size!==0){
             let name: string = file.name;
+            const nameAndExtension = name.split('.')
+            const extension = nameAndExtension[nameAndExtension.length - 1]
+            nameAndExtension.pop()
+            name = nameAndExtension.join("")
             name = name.replace(/\s/g, "");
+            const nameAsArray = name.split(/[\p{C}\p{P}\p{S}]/u);
+            name = nameAsArray.join("");
             name = sanitize(name)
+            name = name + '.' + extension
             name = uuidv4() + name
             const bytes = await file.arrayBuffer();
             const imageBuffer = Buffer.from(bytes);
@@ -616,8 +623,15 @@ export class PushDynamoArticle extends PushDynamoClass{
             let name:string;
             if (!oldArticle.headerImage){
                 name = file.name;
+                const nameAndExtension = name.split('.')
+                const extension = nameAndExtension[nameAndExtension.length - 1]
+                nameAndExtension.pop()
+                name = nameAndExtension.join("")
                 name = name.replace(/\s/g, "");
+                const nameAsArray = name.split(/[\p{C}\p{P}\p{S}]/u);
+                name = nameAsArray.join("");
                 name = sanitize(name)
+                name = name + '.' + extension
                 name = uuidv4() + name
             } else {
                 name = oldArticle.headerImage?.split('/')[oldArticle.headerImage?.split('/').length-1]
