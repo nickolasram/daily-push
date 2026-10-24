@@ -6,6 +6,7 @@ import {Button, Input} from "@headlessui/react";
 import {PushArticle} from "@/types";
 import Image from "next/image";
 import PushDialog from "@/app/components/pushDialog";
+import TipTapText from "@/app/components/tiptapText";
 
 
 const shimmer = () => `
@@ -69,6 +70,8 @@ const ArticleForm = (
     const [info,setInfo] = useState(false)
     const [deletionInputValue,setDeletionInputValue] = useState('')
     const [headerImageDialogOpen, setHeaderImageDialogOpen] = useState(false)
+    const [savedContentPreview, setSavedContentPreview] = useState(false)
+    const [publishedContentPreview, setPublishedContentPreview] = useState(false)
     return (
         <div className={'w-fit bg-white'}>
             <div className={'w-full h-14 gap-6 px-6 pb-1 flex justify-start items-end'}>
@@ -203,8 +206,34 @@ const ArticleForm = (
                     <p>Latest Update: {article?.latestUpdatedDate?new Date(article.latestUpdatedDate).toLocaleString():'Not Published Content'}</p>
                     <p>First Published: {article?.firstPublishedDate?new Date(article.firstPublishedDate).toLocaleString():'Not Published'}</p>
                     <p>Creation Date</p>
-                    <p>Open Saved draft in new window</p>
-                    <p>Open Published Content in new window</p>
+                    { article?.savedContent &&
+                        <>
+                            <Button
+                                onClick={()=>{setSavedContentPreview(true)}}
+                                className={'flex underline w-fit border-none'}>
+                                <p>View Saved Content</p>
+                            </Button>
+                            <PushDialog maxWidth={'max-w-lg'} open={savedContentPreview} setOpen={setSavedContentPreview} title={'Currently Saved Content'}>
+                                <div className="p-6">
+                                    <TipTapText text={article.savedContent} />
+                                </div>
+                            </PushDialog>
+                        </>
+                    }
+                    { article?.publishedContent &&
+                        <>
+                            <Button
+                                onClick={()=>{setPublishedContentPreview(true)}}
+                                className={'flex underline w-fit border-none'}>
+                                <p>View Published Content</p>
+                            </Button>
+                            <PushDialog maxWidth={'max-w-lg'} open={publishedContentPreview} setOpen={setPublishedContentPreview} title={'Currently Published Content'}>
+                                <div className="p-6">
+                                    <TipTapText text={article.publishedContent} />
+                                </div>
+                            </PushDialog>
+                        </>
+                    }
                 </div>
             </div>
         </div>
