@@ -793,8 +793,15 @@ export class PushDynamoArticle extends PushDynamoClass{
 export class PushCognitoClass{
 
     public static async listAllUsers(attributes?:string[]){
+        // const config = {
+        //     ClientId: process.env.NEXT_PUBLIC_CLIENT_ID as string,
+        // }
         const config = {
-            ClientId: process.env.NEXT_PUBLIC_CLIENT_ID as string,
+            region: process.env.NEXT_PUBLIC_REGION as string,
+            credentials:{
+                accessKeyId:process.env.NEXT_PUBLIC_ACCESS_KEY as string,
+                secretAccessKey:process.env.NEXT_PUBLIC_SECRET_KEY as string
+            }
         }
         const client = new CognitoIdentityProviderClient(config)
         const input = {
@@ -806,8 +813,15 @@ export class PushCognitoClass{
     }
 
     public static async listAllUsersWithGroups(){
+        // const config = {
+        //     ClientId: process.env.NEXT_PUBLIC_CLIENT_ID as string,
+        // }
         const config = {
-            ClientId: process.env.NEXT_PUBLIC_CLIENT_ID as string,
+            region: process.env.NEXT_PUBLIC_REGION as string,
+            credentials:{
+                accessKeyId:process.env.NEXT_PUBLIC_ACCESS_KEY as string,
+                secretAccessKey:process.env.NEXT_PUBLIC_SECRET_KEY as string
+            }
         }
         const input = {
             UserPoolId: process.env.NEXT_PUBLIC_USER_POOL_ID as string,
