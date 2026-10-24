@@ -16,7 +16,7 @@ export default function ThinLeftTabs({tabs,tabListAddendum,icons}:ThinLeftTabsPr
         <>
             {isWide &&
                 <div
-                    className={'flex flex-col justify-between pt-4 tertiaryUI px-1'}
+                    className={'flex flex-col pt-4 tertiaryUI px-1'}
                 >
                     <TabList
                         as={'div'}
@@ -27,8 +27,7 @@ export default function ThinLeftTabs({tabs,tabListAddendum,icons}:ThinLeftTabsPr
                                 <Tab
                                     key={i}
                                     as={'div'}
-                                    className={' border-x-0 border-t-0 cursor-pointer w-full text-left ' +
-                                        'border-b-2 last-of-type:border-b-0 border-b-gray-400 py-2'}
+                                    className={`border-x-0 border-t-0 cursor-pointer w-full text-left border-b-2 ${!tabListAddendum?'last-of-type:border-b-0':''} border-b-gray-400 py-2`}
                                 >
                                     <p>{tab}</p>
                                 </Tab>

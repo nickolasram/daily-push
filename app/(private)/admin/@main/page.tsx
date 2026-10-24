@@ -8,11 +8,21 @@ import FormTagLoader from "@/app/(private)/admin/components/formTagLoader";
 import ThinTabsFramework, {TTFChild} from "@/app/components/frameworks/thinTabsFramework";
 import IdeasWrapper from "@/app/(private)/admin/components/ideasWrapper";
 import UsersServerWrapper from "@/app/(private)/admin/components/usersServerWrapper";
-
+import Link from "next/link";
 
 const Page=()=>{
     return (
-        <ThinTabsFramework tabs={['Projects','Tags', 'Demos', 'Ideas','Users']}>
+        <ThinTabsFramework
+            tabs={['Projects','Tags', 'Demos', 'Ideas','Users']}
+            tabListAddendum={
+                <Link
+                className={'mb-4 md:mb-6 underline py-3'}
+                href={'/articles/view'}
+                >
+                    Articles
+                </Link>
+            }
+        >
             <TTFChild>
                 <h2 className={'mb-4 md:mb-6'}>Projects</h2>
                 <Suspense fallback={<p>Loading...</p>}>
