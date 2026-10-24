@@ -94,14 +94,40 @@ const Page=async(
         <SimpleVertical>
             <Suspense fallback={<div>Loading...</div>}>
                 { slug === 'view' &&
-                    <>
+                    <div className={'w-full'}>
+                        <div className={'w-full flex justify-between pb-6'}>
+                            <Link
+                                className={'flex w-50 bg-black/40 border-white border-2 gap-2 items-center justify-center rounded-full px-3'}
+                                href={'/admin'}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
+                                    <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clipRule="evenodd" />
+                                </svg>
+                                <p>
+                                    Admin Page
+                                </p>
+                            </Link>
+                            <Link
+                                className={'flex w-50 bg-black/40 border-white border-2 gap-2 justify-center items-center rounded-full px-3'}
+                                href={'/articles/new'}
+                            >
+                                <p>
+                                    New Article
+                                </p>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-3">
+                                    <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z" />
+                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
+                                    <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
+                                </svg>
+                            </Link>
+                        </div>
                         {
                             articleSummaries.map((summary,i)=>(
-                                <div className={'w-full'} key={i}>
+                                <div className={'w-full mb-6'} key={i}>
                                     <Link
                                         className={'w-full'}
                                         href={'/articles/'+summary.id+'/read'}
-                                        target={'_blank'}
                                     >
                                         <PushArticlePreview
                                             article={summary.summary}
@@ -135,50 +161,90 @@ const Page=async(
                                 </div>
                             ))
                         }
-                    </>
+                    </div>
                 }
                 { slug === 'new' &&
-                    <ArticleWriteClientWrapper
-                        userSub={userSub!}
-                        adminSettings={adminSettings}
-                        suggestedKVs={suggestedKVs}
-                        kvReferences={kvReferences}
-                        authorKV={
-                            {
-                                key: 'Author',
-                                value: userSub ?? '',
-                                object: true,
-                                hidden: false
+                    <div className={'w-full flex flex-col items-center'}>
+                        <div className={'w-full'}>
+                            <Link
+                                className={'flex w-50 bg-black/40 border-white border-2 gap-2 items-center justify-center rounded-full px-3'}
+                                href={'/articles/view'}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
+                                    <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clipRule="evenodd" />
+                                </svg>
+                                <p>
+                                    Article Selection
+                                </p>
+                            </Link>
+                        </div>
+                        <ArticleWriteClientWrapper
+                            userSub={userSub!}
+                            adminSettings={adminSettings}
+                            suggestedKVs={suggestedKVs}
+                            kvReferences={kvReferences}
+                            authorKV={
+                                {
+                                    key: 'Author',
+                                    value: userSub ?? '',
+                                    object: true,
+                                    hidden: false
+                                }
                             }
-                        }
-                    />
+                        />
+                    </div>
                 }
                 { slug !== 'view' && slug !== 'new' &&
                     <>
                         { article &&
                             <>
                                 { option[0] == 'edit' &&
-                                    <ArticleEditClientWrapper
-                                        passedArticle={article}
-                                        suggestedKVs={suggestedKVs}
-                                        kvReferences={kvReferences}
-                                    />
+                                    <div className={'flex flex-col items-center w-full'}>
+                                        <div className={'w-full'}>
+                                            <Link
+                                                className={'flex w-50 bg-black/40 border-white border-2 gap-2 items-center justify-center rounded-full px-3'}
+                                                href={'/articles/view'}
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
+                                                    <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clipRule="evenodd" />
+                                                </svg>
+                                                <p>
+                                                    Article Selection
+                                                </p>
+                                            </Link>
+                                        </div>
+                                        <ArticleEditClientWrapper
+                                            passedArticle={article}
+                                            suggestedKVs={suggestedKVs}
+                                            kvReferences={kvReferences}
+                                        />
+                                    </div>
                                 }
                                 { option[0] != 'view' && option[0] != 'edit' &&
                                     <div>
                                         <div
-                                            className={'w-full flex justify-end '}
+                                            className={'w-full flex justify-between'}
                                         >
                                             <Link
-                                                className={'flex w-fit bg-black/40 border-white border-2 gap-2 items-center rounded-full px-3'}
+                                                className={'flex w-50 bg-black/40 border-white border-2 gap-2 items-center justify-center rounded-full px-3'}
+                                                href={'/articles/view'}
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
+                                                    <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clipRule="evenodd" />
+                                                </svg>
+                                                <p>
+                                                    Article Selection
+                                                </p>
+                                            </Link>
+                                            <Link
+                                                className={'flex w-50 bg-black/40 border-white border-2 gap-2 justify-center items-center rounded-full px-3'}
                                                 href={'/articles/'+article.objectId+'/edit'}
-                                                target={'_blank'}
                                             >
                                                 <p>
                                                     Edit Article
                                                 </p>
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-3">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
+                                                    <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
                                                 </svg>
                                             </Link>
                                         </div>
