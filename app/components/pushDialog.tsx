@@ -17,8 +17,8 @@ const PushDialog = ({
                     children}:PushDialogProps) => {
     return (
         <Dialog open={open} onClose={() => setOpen(false)} className="relative z-50">
-            <div className="fixed inset-0 flex w-screen items-center justify-center p-4  backdrop-blur-xl backdrop-brightness-50">
-                <DialogPanel className={`dialogPanel ${maxWidth}`}>
+            <div className="fixed inset-0 flex w-screen items-center justify-center p-4 backdrop-blur-xl backdrop-brightness-50">
+                <DialogPanel className={`dialogPanel max-h-[90vh] overflow-y-auto overflow-x-auto ${maxWidth}`}>
                     <div className="flex items-center justify-between w-full">
                         <p className={'text-lg px-6'}>{title}</p>
                         <Button
