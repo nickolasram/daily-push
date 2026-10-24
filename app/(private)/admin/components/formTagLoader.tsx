@@ -7,6 +7,7 @@ import ProjectForm from "@/app/(private)/admin/components/projectForm";
 async function getTags() {
     function docClient(){
         const dbClient = new DynamoDBClient({
+            region: process.env.NEXT_PUBLIC_REGION as string,
             credentials:{
                 accessKeyId:process.env.NEXT_PUBLIC_ACCESS_KEY as string,
                 secretAccessKey:process.env.NEXT_PUBLIC_SECRET_KEY as string

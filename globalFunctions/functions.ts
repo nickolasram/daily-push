@@ -4,6 +4,7 @@ import {CognitoIdentityProviderClient} from "@aws-sdk/client-cognito-identity-pr
 
 export async function getDynamoClient() {
     const dbClient = new DynamoDBClient({
+        region: process.env.NEXT_PUBLIC_REGION as string,
         credentials:{
             accessKeyId:process.env.NEXT_PUBLIC_ACCESS_KEY as string,
             secretAccessKey:process.env.NEXT_PUBLIC_SECRET_KEY as string
@@ -15,6 +16,7 @@ export async function getDynamoClient() {
 export async function getCognitoClient() {
     return new CognitoIdentityProviderClient(
         {
+            region: process.env.NEXT_PUBLIC_REGION as string,
             credentials: {
                 accessKeyId: process.env.NEXT_PUBLIC_ACCESS_KEY as string,
                 secretAccessKey: process.env.NEXT_PUBLIC_SECRET_KEY as string
