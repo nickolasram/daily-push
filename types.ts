@@ -16,9 +16,10 @@ export interface PushProject {
 }
 
 export interface PushTag{
-    objectType: 'tag',
-    objectId: string,
-    title: string,
+    objectType: 'tag';
+    objectId: string;
+    title: string;
+    createdAt: string;
 }
 
 export interface PushIdea {
@@ -49,6 +50,7 @@ export interface PushArticle {
     adminSettings: articleAdminSetting[];
     headerImage?:string;
     contributors:KVRecord[];
+    createdAt: string;
 }
 
 export interface PushArticleSummary{

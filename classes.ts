@@ -103,6 +103,7 @@ export class PushDynamoArticle extends PushDynamoClass{
     public publishedContent:string|undefined;
     public published:boolean;
     public lastSavedDate:string|Date|undefined;
+    public createdAt:string|Date|undefined;
     public headerImage:string|undefined;
     public formNodes:pushFormNode[];
     public adminFormNodes:pushFormNode[];
@@ -146,6 +147,7 @@ export class PushDynamoArticle extends PushDynamoClass{
             this.publishedContent = arg1.publishedContent;
             this.published = arg1.published;
             this.formSettings = arg1.formSettings;
+            this.createdAt = arg1.createdAt;
             provided = arg1.contributors
             const creatorSetting = arg1.adminSettings.find(obj=>{return obj.permission == 'creator'})
             creatorValue = creatorSetting!.id
@@ -528,6 +530,7 @@ export class PushDynamoArticle extends PushDynamoClass{
                 formSettings:JSON.parse(formData.get('settings') as string) as articleFormSettings,
                 contributors:JSON.parse(formData.get('contributors') as string).contributors as KVRecord[],
                 adminSettings:JSON.parse(formData.get('adminSettings') as string).adminSettings as articleAdminSetting[],
+                createdAt:updateTime
             }
         } else {
             newArticle = {
@@ -543,6 +546,7 @@ export class PushDynamoArticle extends PushDynamoClass{
                 publishedContent:formData.get('content')?formData.get('content') as string:'[BODY]',
                 firstPublishedDate:updateTime,
                 latestUpdatedDate:updateTime,
+                createdAt:updateTime
             }
         }
         const newItem={
@@ -785,7 +789,8 @@ export class PushDynamoArticle extends PushDynamoClass{
             lastSavedDate:this.lastSavedDate,
             formSettings:this.formSettings,
             adminSettings:this.adminSettings,
-            objectId:this.articleId
+            objectId:this.articleId,
+            createdAt:(typeof this.createdAt == 'string'?this.createdAt:this.createdAt?.toISOString())??new Date().toISOString(),
         }
     }
 }
