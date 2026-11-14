@@ -17,11 +17,12 @@ interface props{
     kvReferences:listAndKVReference[]
     passedArticle:PushArticle;
     suggestedKVs:suggestKVFieldValue[];
+    tagsReference:{display:string,value:string}[];
 }
 
 const ArticleEditClientWrapper=(
     {
-        kvReferences,passedArticle,suggestedKVs
+        kvReferences,passedArticle,suggestedKVs,tagsReference,
     }
     :props
 )=>{
@@ -33,7 +34,9 @@ const ArticleEditClientWrapper=(
     }
     const adminSettings:articleAdminFormSettings = {
         reference: kvReferences,
-        suggested: suggestedKVs
+        suggested: suggestedKVs,
+        tags:true,
+        tagsReference:tagsReference
     }
     freshArticle.setFormSettings(articleSettings);
     freshArticle.setAdminFormSettings(adminSettings);

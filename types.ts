@@ -51,6 +51,7 @@ export interface PushArticle {
     headerImage?:string;
     contributors:KVRecord[];
     createdAt: string;
+    tags?: string[];
 }
 
 export interface PushArticleSummary{
@@ -63,6 +64,7 @@ export interface PushArticleSummary{
     contributors:KVRecord[];
     published:boolean;
     latestSavedDate?:string|Date;
+    tags?: string[];
 }
 
 export interface KVRecord{
@@ -102,6 +104,8 @@ export interface articleFormSettings{
     suggestedKVs?:suggestKVFieldValue[];
     providedKVs?:KVRecord[];
     kvReference?:listAndKVReference[];
+    tags?:boolean;
+    tagsReference?:{value:string,display:string}[];
 }
 
 export interface simpleArticleFormSettings{
@@ -115,6 +119,8 @@ export interface simpleArticleFormSettings{
 export interface articleAdminFormSettings{
     reference?:listAndKVReference[];
     suggested?:suggestListFieldValue[];
+    tags?:boolean;
+    tagsReference?:{value:string,display:string}[];
 }
 
 export interface pushCognitoUser{

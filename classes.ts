@@ -110,6 +110,7 @@ export class PushDynamoArticle extends PushDynamoClass{
     public contributors:KVRecord[]|undefined;
     public formSettings: articleFormSettings;
     public adminSettings: articleAdminSetting[];
+    public tags:string[]|undefined;
 
     constructor(arg1:PushArticle|string){
         super();
@@ -130,6 +131,8 @@ export class PushDynamoArticle extends PushDynamoClass{
                 hidden:false,
                 object:true
             }
+
+            this.tags = [];
             this.contributors = [defaultUser];
             provided = [defaultUser]
             this.formSettings = {}
@@ -148,6 +151,7 @@ export class PushDynamoArticle extends PushDynamoClass{
             this.published = arg1.published;
             this.formSettings = arg1.formSettings;
             this.createdAt = arg1.createdAt;
+            this.tags = arg1.tags;
             provided = arg1.contributors
             const creatorSetting = arg1.adminSettings.find(obj=>{return obj.permission == 'creator'})
             creatorValue = creatorSetting!.id
@@ -205,8 +209,14 @@ export class PushDynamoArticle extends PushDynamoClass{
                 providedListFieldEntries: reviewers
             },
             {
+                type:'freeTags',
+                defaultTags:this.tags,
+                name:'ArticleTags',
+                label:'Tags',
+                tags:this.formSettings.tagsReference??[]
+            },
+            {
                 name: 'articleVisibility',
-
                 type: 'custom',
                 node: ArticleVisibilityToggle()
             }
@@ -245,6 +255,9 @@ export class PushDynamoArticle extends PushDynamoClass{
     }
 
     public setAdminFormSettings(settings:articleAdminFormSettings):void{
+        if (!settings.tags){
+            this.adminFormNodes = this.adminFormNodes.filter((formNode)=>{return formNode.type!='freeTags'})
+        }
         for (const node of this.adminFormNodes) {
             if (node.type == 'note') {
                 const creatorSetting = this.adminSettings.find(obj=>{return obj.permission == 'creator'})
@@ -260,6 +273,11 @@ export class PushDynamoArticle extends PushDynamoClass{
             if (node.type == 'listColumn') {
                 node.listFieldReference = settings.reference;
                 node.suggestedListFieldValues = settings.suggested;
+            }
+            if (node.type == 'freeTags') {
+                if (settings.tags){
+                    node.tags = settings.tagsReference??[]
+                }
             }
         }
     }
