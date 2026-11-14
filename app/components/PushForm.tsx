@@ -557,6 +557,126 @@ const TagForm = ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
     )
 }
 
+const FreeTagForm= ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
+    const [matchingValues,setMatchingValues]=useState<{display:string,value:string}[]>([]);
+    const [verifiedTags,setVerifiedTags]=useState<string[]>(defaultValues??[]);
+    const [currentInput, setCurrentInput]=useState('');
+    const [newTags,setNewTags]=useState<string[]>([]);
+    const inputRef = useRef<HTMLInputElement|null>(null)
+    const handleChange=(input:string)=>{
+        if(input?.length==0){
+            setMatchingValues([])
+            setCurrentInput('')
+        } else {
+            const regexValue = input + '.*'
+            const re = new RegExp(regexValue, 'i')
+            setMatchingValues(possibleTagValues.filter(ptv=>re.test(ptv.display)))
+            setCurrentInput(input)
+        }
+    }
+
+
+    const AcceptedTag=({value}:{value:string})=>{
+        const foundTag = possibleTagValues.find(tag=>tag.value===value)
+        return (
+            <>
+                <input name={name} value={foundTag!.value} readOnly={true} className={'hidden size-0'} />
+                <Button
+                    type="button"
+                    className={'bg-cyan-800 text-white border-3 grow-0 w-min h-min px-1 flex gap-1 items-center rounded-lg'}
+                    onClick={()=>{setVerifiedTags(verifiedTags.filter(tag=>tag!==value))}}
+                >
+                    <p className={'text-nowrap max-w-[8ch] overflow-x-hidden text-ellipsis'}>{foundTag!.display}</p>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
+                        <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z" clipRule="evenodd" />
+                    </svg>
+                </Button>
+            </>
+        )
+    }
+    const NewTag=({value}:{value:string})=>{
+        return (
+            <>
+                <input name={name + 'newTag'} value={value} readOnly={true} className={'hidden size-0'} />
+                <Button
+                    type="button"
+                    className={'bg-cyan-800/70 text-white border-3 grow-0 w-min h-min px-1 flex gap-1 items-center rounded-lg'}
+                    onClick={()=>{setNewTags(newTags.filter(tag=>tag!==value))}}
+                >
+                    <p className={'text-nowrap max-w-[8ch] overflow-x-hidden text-ellipsis'}>{value}</p>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
+                        <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z" clipRule="evenodd" />
+                    </svg>
+                </Button>
+            </>
+        )
+    }
+
+    return (
+        <div>
+            <div className={'border border-black min-h-8 p-2 w-50 max-w-50 flex flex-wrap gap-2'}>
+                {verifiedTags.map((v,i)=>{
+                    return <AcceptedTag value={v} key={i}/>
+                })
+                }
+                {newTags.map((v,i)=>{
+                    return <NewTag value={v} key={i}/>
+                })
+                }
+                <input
+                    type={'text'}
+                    placeholder={'Tag...'}
+                    ref={inputRef}
+                    onChange={event => handleChange(event.target.value)}
+                    className={'max-w-40 min-w-15 basis-0 grow'}/>
+            </div>
+            { (currentInput != '' && currentInput != undefined) &&
+                <div className={'border border-white flex flex-col text-white bg-gray-700 border-t-0 w-50'}>
+                    { !matchingValues.find(obj=>obj.display.toLowerCase()==currentInput.toLowerCase()) &&
+                        <Button
+                            className={'cursor-pointer grid grid-columns-1 grid-rows-1 '}
+                            onClick={()=> {
+                                setNewTags([...newTags, currentInput])
+                                inputRef.current!.value=''
+                                setCurrentInput('')
+                                setMatchingValues([])
+                            }}
+                        >
+                            <p
+                                className={'z-40 col-start-1 row-start-1 text-left '}
+                            >
+                                {currentInput}
+                            </p>
+                            <p
+                                className={'z-30 text-sm col-start-1 row-start-1 opacity-50 text-right'}
+                            >
+                                New Tag
+                            </p>
+                        </Button>
+                    }
+                    { matchingValues.map((v,i)=>{
+                        return (
+                            <Button
+                                key={i}
+                                className={'text-left cursor-pointer'}
+                                onClick={()=> {
+                                    inputRef.current!.value=''
+                                    setMatchingValues([])
+                                    setCurrentInput('')
+                                    setVerifiedTags([...verifiedTags, v.value])
+                                }}
+                            >
+                                {v.display}
+                            </Button>
+                        )
+                    })
+                    }
+                </div>
+            }
+        </div>
+    )
+}
+
 interface passwordFieldProps{
     defaultShow:boolean,
     labelPlacement?: 'column' | 'row';
@@ -637,7 +757,7 @@ export interface pushFormNode {
     node?: ReactNode;
     options?:Array<{ value:string, label:string, defaultChecked?:boolean }>; //defaultChecked NOT for radio options
     tags?: {display:string,value:string}[];
-    type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags' | 'listColumn' | 'note' | 'email' | 'password';
+    type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags' | 'freeTags' | 'listColumn' | 'note' | 'email' | 'password';
     defaultValue?: string | number;
     defaultTags?: string[];
     providedKVs?:KVRecord[];
@@ -950,6 +1070,16 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                 else if(field.type == 'tags'){
                     return (
                         <TagForm
+                            key={i}
+                            name={field.name}
+                            possibleTagValues={field.tags??[]}
+                            defaultValues={field.defaultTags}
+                        />
+                    )
+                }
+                else if(field.type == 'freeTags'){
+                    return (
+                        <FreeTagForm
                             key={i}
                             name={field.name}
                             possibleTagValues={field.tags??[]}
