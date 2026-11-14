@@ -597,7 +597,7 @@ const FreeTagForm= ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
     const NewTag=({value}:{value:string})=>{
         return (
             <>
-                <input name={name + 'newTag'} value={value} readOnly={true} className={'hidden size-0'} />
+                <input name={name + 'NewTag'} value={value} readOnly={true} className={'hidden size-0'} />
                 <Button
                     type="button"
                     className={'bg-cyan-800/70 text-white border-3 grow-0 w-min h-min px-1 flex gap-1 items-center rounded-lg'}
@@ -1069,22 +1069,29 @@ const PushForm = ({fields, onSubmit, labelPlacementDefault, rounded,inputRounded
                 }
                 else if(field.type == 'tags'){
                     return (
-                        <TagForm
-                            key={i}
-                            name={field.name}
-                            possibleTagValues={field.tags??[]}
-                            defaultValues={field.defaultTags}
-                        />
+                        <div key={i} className="flex"
+                             style={{flexDirection:field.labelPlacement??labelPlacementDefault??'column'}}>
+                            <p style={{minWidth: longestLabel + 1 + 'ch',}}>{field.label??field.name}</p>
+                            <TagForm
+                                key={i}
+                                name={field.name}
+                                possibleTagValues={field.tags??[]}
+                                defaultValues={field.defaultTags}
+                            />
+                        </div>
                     )
                 }
                 else if(field.type == 'freeTags'){
                     return (
-                        <FreeTagForm
-                            key={i}
-                            name={field.name}
-                            possibleTagValues={field.tags??[]}
-                            defaultValues={field.defaultTags}
-                        />
+                        <div key={i} className="flex"
+                             style={{flexDirection:field.labelPlacement??labelPlacementDefault??'column'}}>
+                            <p style={{minWidth: longestLabel + 1 + 'ch',}}>{field.label??field.name}</p>
+                            <FreeTagForm
+                                name={field.name}
+                                possibleTagValues={field.tags??[]}
+                                defaultValues={field.defaultTags}
+                            />
+                        </div>
                     )
                 }
                 else if(field.type == 'image'){

@@ -17,6 +17,26 @@ import PushArticleDisplay from "@/components/pushArticleDisplay";
 import ArticleEditClientWrapper from "@/app/(private)/articles/components/articleEditClientWrapper";
 import ArticleWriteClientWrapper from "@/app/(private)/articles/components/articleWriteClientWrapper";
 import {getSession} from "@/session/actions";
+import {QueryCommand} from "@aws-sdk/lib-dynamodb";
+
+async function getTags() {
+    const allTags = new QueryCommand({
+        TableName:'daily-push',
+        KeyConditionExpression: 'objectType = :ta',
+        ExpressionAttributeValues: {
+            ':ta': 'tag'
+        }
+    })
+
+    const client = await getDynamoClient()
+    const response = await client.send(allTags);
+    return (response.Items??[]).map((item) => {
+        return {
+            value:item.objectId,
+            display:item.title
+        }
+    })
+}
 
 const Page=async(
     {
@@ -42,9 +62,12 @@ const Page=async(
             }
         }
     })
+    const existingTags = await getTags();
     const adminSettings:articleAdminFormSettings = {
         reference: [],
-        suggested: []
+        suggested: [],
+        tags:true,
+        tagsReference:existingTags,
     }
     let articleSummaries:{ summary:PushArticleSummary,id:string }[] = [];
     let article: PushArticle|undefined;
@@ -217,6 +240,7 @@ const Page=async(
                                             passedArticle={article}
                                             suggestedKVs={suggestedKVs}
                                             kvReferences={kvReferences}
+                                            tagsReference={existingTags}
                                         />
                                     </div>
                                 }

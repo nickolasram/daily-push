@@ -48,7 +48,7 @@ interface ArticleFormProps {
     onSettingsSubmit: (event: SubmitEvent<HTMLFormElement>)=>void,
     article?:PushArticle,
     onDelete?: ()=>void,
-    onRemoveHeader?: ()=>void,
+    onRemoveHeader?: ()=>void
 }
 
 const ArticleForm = (
