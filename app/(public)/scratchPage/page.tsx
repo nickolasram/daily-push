@@ -1,35 +1,36 @@
-"use client"
+"use server"
 
-import { useState } from "react"
+import ClientScratchForm from "@/app/(public)/scratchPage/clientScratchForm";
+import {QueryCommand} from "@aws-sdk/lib-dynamodb";
+import {getDynamoClient} from "@/globalFunctions/functions";
+import {PushTag} from "@/types";
+import { Suspense } from "react";
 
-export default function Page(){
-    const [input, setInput] = useState<string>('')
-    // const re =  new RegExp('[\p{L}\p{M}\p{S}\p{N}\p{P}]+')
-    // const re =  new RegExp('[\p{L}]+')
-    const re =  new RegExp(/[\p{L}\p{M}\p{S}\p{N}\p{P}]/u)
-    const restructureInput =(input:string)=>{
-        let endValue = input
-        for (const character of input.split('')){
-            if (!re.test(character)){
-                const letterArray = endValue.split(character)
-                endValue = letterArray.join('_')
-            }
+async function getTags() {
+    const allTags = new QueryCommand({
+        TableName:'daily-push',
+        KeyConditionExpression: 'objectType = :ta',
+        ExpressionAttributeValues: {
+            ':ta': 'tag'
         }
-        return endValue
-    }
+    })
+
+    const client = await getDynamoClient()
+    const response = await client.send(allTags);
+    return response.Items;
+}
+
+export default async function Page(){
+
+    const tags = await getTags() as PushTag[];
+
     return (
         <div>
-            <input
-                type="text"
-                className={'bg-green-200 m-20 text-black'}
-                onChange={event => {
-                    setInput(event.target.value)
-                }}
-            />
-            <div className={'bg-white text-black w-30 min-h-15 mx-20'}>
-                <p>{input}</p>
-                <p>{restructureInput(input)}</p>
-            </div>
+            <Suspense fallback={<div>Loading...</div>}>
+                <ClientScratchForm
+                    loadedTags={tags}
+                />
+            </Suspense>
         </div>
     )
 }

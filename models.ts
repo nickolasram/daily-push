@@ -287,6 +287,7 @@ export class PushDynamoTag extends PushDynamoClass{
             title:title,
             objectType: "tag",
             objectId:newId,
+            createdAt:new Date().toString()
         }
 
         const putCommand = new PutCommand({
