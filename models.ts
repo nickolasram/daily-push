@@ -11,6 +11,7 @@ import {
 import {dynamoObject, PushIdea, PushProject, PushTag} from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {getDynamoClient} from "@/globalFunctions/functions";
+import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
 
 export class PushDynamoProject extends PushDynamoClass{
     public table:string = 'daily-push';
@@ -245,6 +246,7 @@ export class PushDynamoProject extends PushDynamoClass{
 export class PushDynamoTag extends PushDynamoClass{
     public objectId:string;
     public title:string;
+    public subcategory:string|undefined;
 
     constructor(tag:PushTag)
     constructor(title:string,objectId:string)
@@ -259,8 +261,56 @@ export class PushDynamoTag extends PushDynamoClass{
         } else {
             this.objectId = arg1.objectId;
             this.title = arg1.title;
+            this.subcategory = arg1.subcategory;
         }
     }
+
+    public static async getAllTags(tableName:string){
+        function docClient(){
+            const dbClient = new DynamoDBClient({
+                region: process.env.NEXT_PUBLIC_REGION as string,
+                credentials:{
+                    accessKeyId:process.env.NEXT_PUBLIC_ACCESS_KEY as string,
+                    secretAccessKey:process.env.NEXT_PUBLIC_SECRET_KEY as string
+                }
+            })
+            return DynamoDBDocumentClient.from(dbClient)
+        }
+        const allTags = new QueryCommand({
+            TableName:tableName,
+            KeyConditionExpression: 'objectType = :ta',
+            ExpressionAttributeValues: {
+                ':ta': 'tag'
+            }
+        })
+        const response = await docClient().send(allTags);
+        return (response.Items??[]) as PushTag[];
+    }
+
+    public static async getCategoryTags(tableName:string,subcategory:string){
+        function docClient(){
+            const dbClient = new DynamoDBClient({
+                region: process.env.NEXT_PUBLIC_REGION as string,
+                credentials:{
+                    accessKeyId:process.env.NEXT_PUBLIC_ACCESS_KEY as string,
+                    secretAccessKey:process.env.NEXT_PUBLIC_SECRET_KEY as string
+                }
+            })
+            return DynamoDBDocumentClient.from(dbClient)
+        }
+        const matchingTags = new QueryCommand({
+            TableName:tableName,
+            KeyConditionExpression: 'objectType = :ta',
+            FilterExpression: 'subcategory = :sub',
+            ExpressionAttributeValues: {
+                ':ta': 'tag',
+                ':sub': subcategory
+            }
+        })
+        const response = await docClient().send(matchingTags);
+        return (response.Items??[]) as PushTag[];
+    }
+
 
     public static formattedFormValues(event:SubmitEvent<HTMLFormElement>){
         event.preventDefault();
@@ -276,7 +326,7 @@ export class PushDynamoTag extends PushDynamoClass{
         return PushDynamoClass.dynamoGet(client,'daily-push',{objectType: 'tag',objectId:objectId});
     }
 
-    public static async post(client:DynamoDBDocumentClient,title:string){
+    public static async post(client:DynamoDBDocumentClient,title:string,subcategory?:string):Promise<PutCommandOutput>{
         let newId = uuidv4();
         let potentialTag = await PushDynamoTag.get(client,newId);
         while(potentialTag.Item){
@@ -287,7 +337,8 @@ export class PushDynamoTag extends PushDynamoClass{
             title:title,
             objectType: "tag",
             objectId:newId,
-            createdAt:new Date().toString()
+            createdAt:new Date().toString(),
+            subcategory:subcategory
         }
 
         const putCommand = new PutCommand({
