@@ -1,6 +1,6 @@
 "use client"
 
-import {PushProject, PushSortingFilterOption} from "@/types";
+import {PushProject, PushSortingFilterOption, PushTag} from "@/types";
 import {useState} from "react";
 import PushSortFilter from "@/app/components/pushSortFilter";
 import LeftWrapJustifyCenterContainer from "@/app/components/frameworks/leftWrapJustifyCenterContainer";
@@ -40,7 +40,7 @@ const projectFilter=(
 
 interface Props{
     projects:PushProject[];
-    tags:{value:string,display:string}[];
+    tags:PushTag[];
 }
 
 export default function HomeProjectList({projects,tags}:Props) {

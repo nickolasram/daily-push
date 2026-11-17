@@ -4,7 +4,7 @@ import {
     articleAdminFormSettings,
     articleFormSettings,
     listAndKVReference,
-    PushArticle,
+    PushArticle, PushTag,
     suggestKVFieldValue
 } from "@/types";
 import {SubmitEvent, useState} from "react";
@@ -17,7 +17,7 @@ interface props{
     kvReferences:listAndKVReference[]
     passedArticle:PushArticle;
     suggestedKVs:suggestKVFieldValue[];
-    tagsReference:{display:string,value:string}[];
+    tagsReference:PushTag[];
 }
 
 const ArticleEditClientWrapper=(

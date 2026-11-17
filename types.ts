@@ -107,7 +107,7 @@ export interface articleFormSettings{
     providedKVs?:KVRecord[];
     kvReference?:listAndKVReference[];
     tags?:boolean;
-    tagsReference?:{value:string,display:string}[];
+    tagsReference?:PushTag[];
 }
 
 export interface simpleArticleFormSettings{
@@ -122,7 +122,7 @@ export interface articleAdminFormSettings{
     reference?:listAndKVReference[];
     suggested?:suggestListFieldValue[];
     tags?:boolean;
-    tagsReference?:{value:string,display:string}[];
+    tagsReference?:PushTag[];
 }
 
 export interface pushCognitoUser{

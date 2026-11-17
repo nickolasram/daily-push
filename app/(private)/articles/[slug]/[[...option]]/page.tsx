@@ -17,26 +17,7 @@ import PushArticleDisplay from "@/components/pushArticleDisplay";
 import ArticleEditClientWrapper from "@/app/(private)/articles/components/articleEditClientWrapper";
 import ArticleWriteClientWrapper from "@/app/(private)/articles/components/articleWriteClientWrapper";
 import {getSession} from "@/session/actions";
-import {QueryCommand} from "@aws-sdk/lib-dynamodb";
-
-async function getTags() {
-    const allTags = new QueryCommand({
-        TableName:'daily-push',
-        KeyConditionExpression: 'objectType = :ta',
-        ExpressionAttributeValues: {
-            ':ta': 'tag'
-        }
-    })
-
-    const client = await getDynamoClient()
-    const response = await client.send(allTags);
-    return (response.Items??[]).map((item) => {
-        return {
-            value:item.objectId,
-            display:item.title
-        }
-    })
-}
+import {PushDynamoTag} from "@/models";
 
 const Page=async(
     {
@@ -62,7 +43,7 @@ const Page=async(
             }
         }
     })
-    const existingTags = await getTags();
+    const existingTags = await PushDynamoTag.getCategoryTags('daily-push','article');
     const adminSettings:articleAdminFormSettings = {
         reference: [],
         suggested: [],

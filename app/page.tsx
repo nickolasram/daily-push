@@ -1,29 +1,13 @@
 "use server";
 
 import SimpleVertical from "@/app/components/frameworks/simpleVertical";
-import {PushDynamoProject} from "@/models";
-import {QueryCommand} from "@aws-sdk/lib-dynamodb";
-import {getDynamoClient} from "@/globalFunctions/functions";
+import {PushDynamoProject, PushDynamoTag} from "@/models";
 import {Suspense} from "react";
 import HomeProjectList from "@/app/components/homeProjectList";
 
-async function getTags() {
-    const allTags = new QueryCommand({
-        TableName:'daily-push',
-        KeyConditionExpression: 'objectType = :ta',
-        ExpressionAttributeValues: {
-            ':ta': 'tag'
-        }
-    })
-    const client = await getDynamoClient()
-    const response = await client.send(allTags);
-    return response.Items;
-}
-
 export default async function Home() {
     const projects = await PushDynamoProject.getAllProjects()
-    const tagsRaw = await getTags();
-    const tagsRefined = (tagsRaw as {title:string,objectId:string}[]).map(tag =>({value:tag.objectId,display:tag.title}))
+    const tags = await PushDynamoTag.getCategoryTags('daily-push','project');
   return (
       <SimpleVertical>
         <h1>Daily-Push!</h1>
@@ -42,7 +26,7 @@ export default async function Home() {
                 projects={
                     projects.map(project=>(project.plainObject()))
                 }
-                tags={tagsRefined}
+                tags={tags}
               />
           </Suspense>
       </SimpleVertical>

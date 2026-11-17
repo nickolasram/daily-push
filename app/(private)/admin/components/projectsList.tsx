@@ -1,7 +1,7 @@
 'use server'
 import {QueryCommand} from "@aws-sdk/lib-dynamodb";
 import {getDynamoClient} from "@/globalFunctions/functions";
-import {PushDynamoProject} from "@/models";
+import {PushDynamoProject, PushDynamoTag} from "@/models";
 import SortedProjectList from "@/app/(private)/admin/components/sortedProjectList";
 
 async function getTags() {
@@ -20,8 +20,7 @@ async function getTags() {
 export default async function ProjectsList() {
     const projects = await PushDynamoProject.getAllProjects()
 
-    const tagsRaw = await getTags();
-    const tagsRefined = (tagsRaw as {title:string,objectId:string}[]).map(tag =>({value:tag.objectId.toString(),display:tag.title}))
+    const tags = await PushDynamoTag.getCategoryTags('daily-push','project');
     return (
         <>
             { projects!.length == 0 &&
@@ -31,7 +30,7 @@ export default async function ProjectsList() {
                 <SortedProjectList projects={projects.map(project => {
                     return project.plainObject();
                 })}
-                   tags={tagsRefined} />
+                   tags={tags} />
             }
         </>
     )
