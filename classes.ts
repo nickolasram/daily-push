@@ -111,6 +111,7 @@ export class PushDynamoArticle extends PushDynamoClass{
     public formSettings: articleFormSettings;
     public adminSettings: articleAdminSetting[];
     public tags:string[]|undefined;
+    public subcategory:string|undefined;
 
     constructor(arg1:PushArticle|string){
         super();

@@ -20,6 +20,7 @@ export interface PushTag{
     objectId: string;
     title: string;
     createdAt: string;
+    subcategory?:string|undefined;
 }
 
 export interface PushIdea {
@@ -52,6 +53,7 @@ export interface PushArticle {
     contributors:KVRecord[];
     createdAt: string;
     tags?: string[];
+    subcategory?:string|undefined;
 }
 
 export interface PushArticleSummary{
