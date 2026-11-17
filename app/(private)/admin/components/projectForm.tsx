@@ -4,8 +4,9 @@ import PushForm, {pushFormNode} from "@/app/components/PushForm";
 import {SubmitEvent, useState} from "react";
 import {Button, Dialog, DialogPanel} from "@headlessui/react";
 import {PushDynamoProject} from "@/models";
+import {PushTag} from "@/types";
 
-const formNodes =(tags:{display:string,value:string}[]):pushFormNode[]=> ([
+const formNodes =(tags:PushTag[]):pushFormNode[]=> ([
         {
             name: 'title',
             type: 'text',
@@ -50,7 +51,7 @@ const formNodes =(tags:{display:string,value:string}[]):pushFormNode[]=> ([
 )
 
 interface ProjectFormProps{
-    tags:{display:string,value:string}[]
+    tags:PushTag[]
 }
 
 export default function ProjectForm({tags}:ProjectFormProps) {

@@ -139,7 +139,7 @@ export function TagEditBtn ({tag}:{tag:PushTag}){
     )
 }
 
-export function ProjectEditBtn({project,nodes,tags}: {project:PushProject,nodes:pushFormNode[],tags:{display:string,value:string}[]}) {
+export function ProjectEditBtn({project,nodes,tags}: {project:PushProject,nodes:pushFormNode[],tags:PushTag[]}) {
     const [open, setOpen] = useState(false);
     const formNodes = [...nodes];
     formNodes[3].tags = tags;

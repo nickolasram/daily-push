@@ -1,6 +1,6 @@
 "use client"
 
-import {PushProject, PushSortingFilterOption} from "@/types";
+import {PushProject, PushSortingFilterOption, PushTag} from "@/types";
 import {ProjectEditBtn} from "@/app/(private)/admin/components/editBtns";
 import LeftWrapJustifyCenterContainer from "@/app/components/frameworks/leftWrapJustifyCenterContainer";
 import PushSortFilter from "@/app/components/pushSortFilter";
@@ -8,7 +8,7 @@ import {useState} from "react";
 
 interface Props{
     projects:PushProject[];
-    tags:{value:string,display:string}[];
+    tags:PushTag[];
 }
 
 const sortProjectByName=(obj1:PushProject,obj2:PushProject,polarity:number=1)=>{
@@ -31,7 +31,7 @@ const sortingOptions = [
 ]
 
 const filterByTag=(
-    allTags:{value:string,display:string}[],
+    allTags:PushTag[],
     selectedTags:string[],
     project:PushProject,
 ):boolean=>{
@@ -42,8 +42,8 @@ const filterByTag=(
         return false
     }
     for (const tag of project.tags){
-        const tagObject = allTags.find(a=>a.value===tag)
-        const tagObjectValue = tagObject?.display
+        const tagObject = allTags.find(a=>a.objectId===tag)
+        const tagObjectValue = tagObject?.title
         if (!selectedTags.includes(tagObjectValue!)){
             return false
         }
@@ -52,7 +52,7 @@ const filterByTag=(
 }
 
 const projectFilter=(
-    allTags:{value:string,display:string}[],
+    allTags:PushTag[],
     selectedTags:string[],
     project:PushProject,
     monthAndYear:[number,number]
@@ -72,7 +72,7 @@ export default function SortedProjectList  ({projects,tags}:Props){
     const [polarity, setPolarity] = useState<1|-1>(1);
     const [sortBy, setSortBy] = useState<PushSortingFilterOption>(sortingOptions[1])
     const [monthAndYear,setMonthAndYear]=useState<[number,number]>([new Date().getMonth(),new Date().getFullYear()])
-    const [selectedFilterOptions,setSelectedFilterOptions]=useState<string[]>(tags.map((a)=>a.display))
+    const [selectedFilterOptions,setSelectedFilterOptions]=useState<string[]>(tags.map((a)=>a.title))
 
     const filteredProjects = projects!.filter(p=>projectFilter(tags,selectedFilterOptions,p,monthAndYear))
 
@@ -87,7 +87,7 @@ export default function SortedProjectList  ({projects,tags}:Props){
                 sortBy={sortBy}
                 polarity={polarity}
                 setPolarity={setPolarity}
-                filterOptions={tags.map((a)=>a.display)}
+                filterOptions={tags.map((a)=>a.title)}
                 selectedFilterOptions={selectedFilterOptions}
                 setSelectedFilterOptions={setSelectedFilterOptions}
                 flexibleMonth={false}

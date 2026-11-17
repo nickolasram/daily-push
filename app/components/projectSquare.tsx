@@ -1,6 +1,6 @@
-import {PushProject} from "@/types";
+import {PushProject, PushTag} from "@/types";
 
-const ProjectSquare=({project,tags}: {project:PushProject,tags:{display:string,value:string}[]})=>{
+const ProjectSquare=({project,tags}: {project:PushProject,tags:PushTag[]})=>{
     if (project.sick){
         return (
             <div className={'aspect-square w-45 max-w-[30svw] max-h-[30svw] flex flex-col justify-between'}>
@@ -31,7 +31,7 @@ const ProjectSquare=({project,tags}: {project:PushProject,tags:{display:string,v
             </div>
         )
     }
-    const tagDisplays = (project.tags??[]).map((tag)=>(tags.find(obj=>obj.value==tag)!.display))
+    const tagDisplays = (project.tags??[]).map((tag)=>(tags.find(obj=>obj.objectId==tag)!.title))
     return(
         <div className={'aspect-square w-45 max-w-[30svw] max-h-[30svw] flex flex-col justify-between'}>
             <p className={'text-left text-md md:text-lg line-clamp-3 font-bold'}>{project.title}</p>

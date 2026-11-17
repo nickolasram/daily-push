@@ -18,7 +18,7 @@ import {
     KVRecord,
     ListFieldEntry,
     listAndKVReference,
-    suggestKVFieldValue, suggestListFieldValue
+    suggestKVFieldValue, suggestListFieldValue, PushTag
 } from "@/types";
 
 interface ListFieldProps {
@@ -481,12 +481,12 @@ const KeyValueField=({name,rounded,providedKVs,suggestedKVs,reference}:keyValueF
 
 interface TagFormProps{
     name:string,
-    possibleTagValues:{display:string,value:string}[],
+    possibleTagValues:PushTag[],
     defaultValues?:string[]
 }
 
 const TagForm = ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
-    const [matchingValues,setMatchingValues]=useState<{display:string,value:string}[]>([])
+    const [matchingValues,setMatchingValues]=useState<PushTag[]>([])
     const [verifiedTags,setVerifiedTags]=useState<string[]>(defaultValues??[])
     const inputRef = useRef<HTMLInputElement|null>(null)
     const handleChange=(input:string)=>{
@@ -495,22 +495,22 @@ const TagForm = ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
         } else {
             const regexValue = input + '.*'
             const re = new RegExp(regexValue, 'i')
-            setMatchingValues(possibleTagValues.filter(ptv=>re.test(ptv.display)))
+            setMatchingValues(possibleTagValues.filter(ptv=>re.test(ptv.title)))
         }
     }
 
 
     const AcceptedTag=({value}:{value:string})=>{
-        const foundTag = possibleTagValues.find(tag=>tag.value===value)
+        const foundTag = possibleTagValues.find(tag=>tag.objectId===value)
         return (
             <>
-                <input name={name} value={foundTag!.value} readOnly={true} className={'hidden size-0'} />
+                <input name={name} value={foundTag!.objectId} readOnly={true} className={'hidden size-0'} />
                 <Button
                     type="button"
                     className={'bg-cyan-800 text-white border-3 grow-0 w-min h-min px-1 flex gap-1 items-center rounded-lg'}
                     onClick={()=>{setVerifiedTags(verifiedTags.filter(tag=>tag!==value))}}
                 >
-                    <p className={'text-nowrap max-w-[8ch] overflow-x-hidden text-ellipsis'}>{foundTag!.display}</p>
+                    <p className={'text-nowrap max-w-[8ch] overflow-x-hidden text-ellipsis'}>{foundTag!.title}</p>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
                         <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z" clipRule="evenodd" />
                     </svg>
@@ -543,10 +543,10 @@ const TagForm = ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
                                 onClick={()=> {
                                     inputRef.current!.value=''
                                     setMatchingValues([])
-                                    setVerifiedTags([...verifiedTags, v.value])
+                                    setVerifiedTags([...verifiedTags, v.objectId])
                                 }}
                             >
-                                {v.display}
+                                {v.title}
                             </Button>
                         )
                     })
@@ -558,7 +558,7 @@ const TagForm = ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
 }
 
 const FreeTagForm= ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
-    const [matchingValues,setMatchingValues]=useState<{display:string,value:string}[]>([]);
+    const [matchingValues,setMatchingValues]=useState<PushTag[]>([]);
     const [verifiedTags,setVerifiedTags]=useState<string[]>(defaultValues??[]);
     const [currentInput, setCurrentInput]=useState('');
     const [newTags,setNewTags]=useState<string[]>([]);
@@ -570,23 +570,23 @@ const FreeTagForm= ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
         } else {
             const regexValue = input + '.*'
             const re = new RegExp(regexValue, 'i')
-            setMatchingValues(possibleTagValues.filter(ptv=>re.test(ptv.display)))
+            setMatchingValues(possibleTagValues.filter(ptv=>re.test(ptv.title)))
             setCurrentInput(input)
         }
     }
 
 
     const AcceptedTag=({value}:{value:string})=>{
-        const foundTag = possibleTagValues.find(tag=>tag.value===value)
+        const foundTag = possibleTagValues.find(tag=>tag.objectId===value)
         return (
             <>
-                <input name={name} value={foundTag!.value} readOnly={true} className={'hidden size-0'} />
+                <input name={name} value={foundTag!.objectId} readOnly={true} className={'hidden size-0'} />
                 <Button
                     type="button"
                     className={'bg-cyan-800 text-white border-3 grow-0 w-min h-min px-1 flex gap-1 items-center rounded-lg'}
                     onClick={()=>{setVerifiedTags(verifiedTags.filter(tag=>tag!==value))}}
                 >
-                    <p className={'text-nowrap max-w-[8ch] overflow-x-hidden text-ellipsis'}>{foundTag!.display}</p>
+                    <p className={'text-nowrap max-w-[8ch] overflow-x-hidden text-ellipsis'}>{foundTag!.title}</p>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
                         <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z" clipRule="evenodd" />
                     </svg>
@@ -632,7 +632,7 @@ const FreeTagForm= ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
             </div>
             { (currentInput != '' && currentInput != undefined) &&
                 <div className={'border border-white flex flex-col text-white bg-gray-700 border-t-0 w-50'}>
-                    { !matchingValues.find(obj=>obj.display.toLowerCase()==currentInput.toLowerCase()) &&
+                    { !matchingValues.find(obj=>obj.title.toLowerCase()==currentInput.toLowerCase()) &&
                         <Button
                             className={'cursor-pointer grid grid-columns-1 grid-rows-1 '}
                             onClick={()=> {
@@ -663,10 +663,10 @@ const FreeTagForm= ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
                                     inputRef.current!.value=''
                                     setMatchingValues([])
                                     setCurrentInput('')
-                                    setVerifiedTags([...verifiedTags, v.value])
+                                    setVerifiedTags([...verifiedTags, v.objectId])
                                 }}
                             >
-                                {v.display}
+                                {v.title}
                             </Button>
                         )
                     })
@@ -756,7 +756,7 @@ export interface pushFormNode {
     name: string;
     node?: ReactNode;
     options?:Array<{ value:string, label:string, defaultChecked?:boolean }>; //defaultChecked NOT for radio options
-    tags?: {display:string,value:string}[];
+    tags?: PushTag[];
     type: 'text' | 'number' | 'textArea' | 'richTextField' | 'file' | 'image' | 'date' | 'custom' | 'keyValueField' | 'radio' | 'check' | 'tags' | 'freeTags' | 'listColumn' | 'note' | 'email' | 'password';
     defaultValue?: string | number;
     defaultTags?: string[];
