@@ -12,6 +12,7 @@ import {PushDynamoArticle} from "@/classes";
 import toast from "react-hot-toast";
 import {useRouter} from "next/navigation";
 import ArticleForm from "@/app/components/articleElements";
+import {getDynamoClient} from "@/globalFunctions/functions";
 
 interface props{
     kvReferences:listAndKVReference[]
@@ -72,48 +73,54 @@ const ArticleEditClientWrapper=(
             }
         )
     }
-    const handleAdminSubmit=(event: SubmitEvent<HTMLFormElement>)=>{
+    const handleAdminSubmit=async (event: SubmitEvent<HTMLFormElement>)=>{
         event.preventDefault();
         const data = new FormData(event.target);
-        const changes = article.getAdminSettingsUpdate(data)
+        const client = await getDynamoClient();
+        const changes = await article.getAdminSettingsUpdate(
+            data,
+            client,
+            'daily-push',
+            'article'
+        )
         if (!changes[0]){
             toast.success('No Changes to Update.')
         } else {
-        //     const plainArticle = article.plainArticle();
-        //     const updatedArticle = new PushDynamoArticle(plainArticle);
-        //     updatedArticle.adminSettings = changes[1];
-        //     updatedArticle.setFormSettings(articleSettings);
-        //     updatedArticle.setAdminFormSettings(adminSettings);
-        //     setArticle(updatedArticle);
-        //     toast.promise(
-        //         fetch('/api/articleAdmin', {
-        //                 method:"PATCH",
-        //                 headers: {'Content-Type': 'application/json'},
-        //                 body: JSON.stringify({
-        //                     articleId: updatedArticle.articleId,
-        //                     adminSettings:changes[1],
-        //                 }),
-        //             }
-        //         ),
-        //         {
-        //             loading: `Attempting to Update Perms...`,
-        //             success: `Successfully Updated Perms...`,
-        //             error: () => {
-        //                 return `Error Updating Perms...`
-        //             },
-        //         },
-        //         {
-        //             style: {
-        //                 minWidth: '250px'
-        //             },
-        //             success: {
-        //                 duration: 1000,
-        //             },
-        //             error: {
-        //                 duration: 500,
-        //             }
-        //         }
-        //     )
+            const plainArticle = article.plainArticle();
+            const updatedArticle = new PushDynamoArticle(plainArticle);
+            updatedArticle.adminSettings = changes[1];
+            updatedArticle.setFormSettings(articleSettings);
+            updatedArticle.setAdminFormSettings(adminSettings);
+            setArticle(updatedArticle);
+            toast.promise(
+                fetch('/api/articleAdmin', {
+                        method:"PATCH",
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            articleId: updatedArticle.articleId,
+                            adminSettings:changes[1],
+                        }),
+                    }
+                ),
+                {
+                    loading: `Attempting to Update...`,
+                    success: `Successfully Updated...`,
+                    error: () => {
+                        return `Error Updating...`
+                    },
+                },
+                {
+                    style: {
+                        minWidth: '250px'
+                    },
+                    success: {
+                        duration: 1000,
+                    },
+                    error: {
+                        duration: 500,
+                    }
+                }
+            )
         }
     }
     const handleDelete = () => {

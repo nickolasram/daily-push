@@ -536,19 +536,21 @@ const TagForm = ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
             { matchingValues.length > 0 &&
                 <div className={'border border-white flex flex-col text-white bg-gray-700 border-t-0 w-50'}>
                     { matchingValues.map((v,i)=>{
-                        return (
-                            <Button
-                                key={i}
-                                className={'text-left cursor-pointer'}
-                                onClick={()=> {
-                                    inputRef.current!.value=''
-                                    setMatchingValues([])
-                                    setVerifiedTags([...verifiedTags, v.objectId])
-                                }}
-                            >
-                                {v.title}
-                            </Button>
-                        )
+                        if (!verifiedTags.includes(v.objectId)){
+                            return (
+                                <Button
+                                    key={i}
+                                    className={'text-left cursor-pointer'}
+                                    onClick={()=> {
+                                        inputRef.current!.value=''
+                                        setMatchingValues([])
+                                        setVerifiedTags([...verifiedTags, v.objectId])
+                                    }}
+                                >
+                                    {v.title}
+                                </Button>
+                            )
+                        }
                     })
                     }
                 </div>
@@ -597,7 +599,7 @@ const FreeTagForm= ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
     const NewTag=({value}:{value:string})=>{
         return (
             <>
-                <input name={name + 'NewTag'} value={value} readOnly={true} className={'hidden size-0'} />
+                <input name={name + 'New'} value={value} readOnly={true} className={'hidden size-0'} />
                 <Button
                     type="button"
                     className={'bg-cyan-800/70 text-white border-3 grow-0 w-min h-min px-1 flex gap-1 items-center rounded-lg'}
@@ -633,6 +635,7 @@ const FreeTagForm= ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
             { (currentInput != '' && currentInput != undefined) &&
                 <div className={'border border-white flex flex-col text-white bg-gray-700 border-t-0 w-50'}>
                     { !matchingValues.find(obj=>obj.title.toLowerCase()==currentInput.toLowerCase()) &&
+                        !newTags.includes(currentInput) &&
                         <Button
                             className={'cursor-pointer grid grid-columns-1 grid-rows-1 '}
                             onClick={()=> {
@@ -655,20 +658,22 @@ const FreeTagForm= ({name,possibleTagValues,defaultValues}:TagFormProps)=>{
                         </Button>
                     }
                     { matchingValues.map((v,i)=>{
-                        return (
-                            <Button
-                                key={i}
-                                className={'text-left cursor-pointer'}
-                                onClick={()=> {
-                                    inputRef.current!.value=''
-                                    setMatchingValues([])
-                                    setCurrentInput('')
-                                    setVerifiedTags([...verifiedTags, v.objectId])
-                                }}
-                            >
-                                {v.title}
-                            </Button>
-                        )
+                        if (!verifiedTags.includes(v.objectId)){
+                            return (
+                                <Button
+                                    key={i}
+                                    className={'text-left cursor-pointer'}
+                                    onClick={()=> {
+                                        inputRef.current!.value=''
+                                        setMatchingValues([])
+                                        setCurrentInput('')
+                                        setVerifiedTags([...verifiedTags, v.objectId])
+                                    }}
+                                >
+                                    {v.title}
+                                </Button>
+                            )
+                        }
                     })
                     }
                 </div>

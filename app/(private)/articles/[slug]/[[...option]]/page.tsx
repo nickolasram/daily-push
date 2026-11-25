@@ -147,7 +147,7 @@ const Page=async(
                                             {summary.summary.published?"Public":"Hidden"}
                                         </p>
                                         <p
-                                            className={`${summary.summary.published?'text-green-500':'text-red-500'} bg-black/50 px-3 text-sm md:text-md`}
+                                            className={`${summary.summary.latestSavedDate==summary.summary.latestUpdatedDate?'text-green-500':'text-red-500'} bg-black/50 px-3 text-sm md:text-md`}
                                         >
                                             {summary.summary.latestSavedDate==summary.summary.latestUpdatedDate?"Published Up to Date":"Published Not Up to Date"}
                                         </p>

@@ -48,7 +48,7 @@ export interface PushArticle {
     published:boolean;
     lastSavedDate:string|Date|undefined;
     formSettings: simpleArticleFormSettings;
-    adminSettings: articleAdminSetting[];
+    adminSettings: articleAdminSettings;
     headerImage?:string;
     contributors:KVRecord[];
     createdAt: string;
@@ -67,6 +67,7 @@ export interface PushArticleSummary{
     published:boolean;
     latestSavedDate?:string|Date;
     tags?: string[];
+    adminSettings?:articleAdminSettings;
 }
 
 export interface KVRecord{
@@ -91,7 +92,7 @@ export interface ListFieldEntry{
 
 export type suggestListFieldValue = string | {value:string,display:string}
 
-export interface articleAdminSetting{
+export interface articleAdminUser{
     id: string;
     permission: 'creator'|'admin'|'editor'|'reviewer';
     reference:boolean;
@@ -123,6 +124,11 @@ export interface articleAdminFormSettings{
     suggested?:suggestListFieldValue[];
     tags?:boolean;
     tagsReference?:PushTag[];
+}
+
+export interface articleAdminSettings {
+    admins: articleAdminUser[];
+    tags?:string[];
 }
 
 export interface pushCognitoUser{

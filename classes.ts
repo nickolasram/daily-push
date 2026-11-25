@@ -18,7 +18,7 @@ import {
     ListUsersInGroupCommand
 } from "@aws-sdk/client-cognito-identity-provider";
 import {
-    articleAdminSetting,
+    articleAdminUser,
     articleAdminFormSettings,
     articleFormSettings,
     dynamoObject,
@@ -27,7 +27,8 @@ import {
     ListFieldEntry,
     PushArticle,
     PushArticleSummary,
-    suggestKVFieldValue
+    suggestKVFieldValue,
+    articleAdminSettings
 } from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {SubmitEvent} from "react";
@@ -37,6 +38,7 @@ import sanitize from "sanitize-filename";
 import {DeleteObjectCommand, PutObjectCommand, S3Client, S3ServiceException,} from "@aws-sdk/client-s3";
 import {NextRequest, NextResponse} from "next/server";
 import {ArticleBodySwitch, ArticleVisibilityToggle} from "@/app/components/articleServerElements";
+import {PushDynamoTag} from "@/models";
 
 export abstract class PushDynamoClass {
 
@@ -109,8 +111,7 @@ export class PushDynamoArticle extends PushDynamoClass{
     public adminFormNodes:pushFormNode[];
     public contributors:KVRecord[]|undefined;
     public formSettings: articleFormSettings;
-    public adminSettings: articleAdminSetting[];
-    public tags:string[]|undefined;
+    public adminSettings: articleAdminSettings;
     public subcategory:string|undefined;
 
     constructor(arg1:PushArticle|string){
@@ -119,12 +120,14 @@ export class PushDynamoArticle extends PushDynamoClass{
         let creatorValue:string;
         if (typeof arg1 == 'string') {
             this.published = false;
-            this.adminSettings = [{
-                id: arg1,
-                permission:'creator',
-                reference:true,
-                hidden:false
-            }]
+            this.adminSettings = {
+                    admins: [{
+                        id: arg1,
+                        permission:'creator',
+                        reference:true,
+                        hidden:false
+                    }]
+                }
             creatorValue = arg1
             const defaultUser:KVRecord = {
                 key:'Author',
@@ -133,7 +136,6 @@ export class PushDynamoArticle extends PushDynamoClass{
                 object:true
             }
 
-            this.tags = [];
             this.contributors = [defaultUser];
             provided = [defaultUser]
             this.formSettings = {}
@@ -152,9 +154,9 @@ export class PushDynamoArticle extends PushDynamoClass{
             this.published = arg1.published;
             this.formSettings = arg1.formSettings;
             this.createdAt = arg1.createdAt;
-            this.tags = arg1.tags;
+            this.subcategory = arg1.subcategory;
             provided = arg1.contributors
-            const creatorSetting = arg1.adminSettings.find(obj=>{return obj.permission == 'creator'})
+            const creatorSetting = arg1.adminSettings.admins.find(obj=>{return obj.permission == 'creator'})
             creatorValue = creatorSetting!.id
         }
         const contributorNode:pushFormNode = {
@@ -165,7 +167,7 @@ export class PushDynamoArticle extends PushDynamoClass{
         }
         this.formNodes = [
             { name: 'heading', type: 'text', label: 'Heading', defaultValue: this.heading, required:true},
-            { name: 'subheading', type: 'text', label: 'Subheading', defaultValue: this.heading},
+            { name: 'subheading', type: 'text', label: 'Subheading', defaultValue: this.subheading},
             { name: 'headerImage', type: 'image', label: 'Header Image', defaultValue: this.headerImage},
             contributorNode,
             {name: 'contentSelectionSwitch', type:'custom', node:ArticleBodySwitch()},
@@ -174,7 +176,7 @@ export class PushDynamoArticle extends PushDynamoClass{
         const admins:ListFieldEntry[] = [];
         const editors:ListFieldEntry[] = [];
         const reviewers:ListFieldEntry[] = [];
-        for (const user of this.adminSettings) {
+        for (const user of this.adminSettings.admins) {
             if (user.permission=='admin'){
                 admins.push({value:user.id,object:user.reference,hidden:user.hidden});
             }
@@ -211,7 +213,7 @@ export class PushDynamoArticle extends PushDynamoClass{
             },
             {
                 type:'freeTags',
-                defaultTags:this.tags,
+                defaultTags:this.adminSettings.tags,
                 name:'ArticleTags',
                 label:'Tags',
                 tags:this.formSettings.tagsReference??[]
@@ -241,7 +243,7 @@ export class PushDynamoArticle extends PushDynamoClass{
 
     public setFormSettings(settings:articleFormSettings){
         this.formSettings = {
-            ...this.adminSettings,
+            ...this.adminSettings.admins,
             ...settings
         }
         if (settings.providedKVs){
@@ -261,7 +263,7 @@ export class PushDynamoArticle extends PushDynamoClass{
         }
         for (const node of this.adminFormNodes) {
             if (node.type == 'note') {
-                const creatorSetting = this.adminSettings.find(obj=>{return obj.permission == 'creator'})
+                const creatorSetting = this.adminSettings.admins.find(obj=>{return obj.permission == 'creator'})
                 if (creatorSetting!.reference){
                     const creatorDisplay = settings.reference?.find(obj=>{return obj.value == creatorSetting!.id})
                     if (creatorDisplay){
@@ -322,12 +324,16 @@ export class PushDynamoArticle extends PushDynamoClass{
             })
     }
 
+    public setSubcategory(subcategory:string):void{
+        this.subcategory = subcategory
+    }
+
     public static getNewAdminSettings(
         data:FormData,
-        creatorSetting:articleAdminSetting,
+        creatorSetting:articleAdminUser,
     ){
         const admins = generateListFieldValues('admins',data)
-        const adminPerms:articleAdminSetting[] = admins.map(adminUser=>{
+        const adminPerms:articleAdminUser[] = admins.map(adminUser=>{
             return {
                 id:adminUser.value,
                 reference:adminUser.object,
@@ -336,7 +342,7 @@ export class PushDynamoArticle extends PushDynamoClass{
             }
         })
         const editors = generateListFieldValues('editors',data)
-        const editorPerms:articleAdminSetting[] = editors.map(adminUser=>{
+        const editorPerms:articleAdminUser[] = editors.map(adminUser=>{
             return {
                 id:adminUser.value,
                 reference:adminUser.object,
@@ -345,7 +351,7 @@ export class PushDynamoArticle extends PushDynamoClass{
             }
         })
         const reviewers = generateListFieldValues('reviewers',data)
-        const reviewerPerms:articleAdminSetting[] = reviewers.map(adminUser=>{
+        const reviewerPerms:articleAdminUser[] = reviewers.map(adminUser=>{
             return {
                 id:adminUser.value,
                 reference:adminUser.object,
@@ -356,13 +362,36 @@ export class PushDynamoArticle extends PushDynamoClass{
         return [creatorSetting, ...adminPerms, ...editorPerms, ...reviewerPerms]
     }
 
-    private adminSettingCompare(obj1:articleAdminSetting, obj2:articleAdminSetting){
+    private adminSettingCompare(obj1:articleAdminUser, obj2:articleAdminUser){
         return obj1.id == obj2.id && obj1.reference == obj2.reference && obj1.hidden == obj2.hidden && obj1.permission == obj2.permission
     }
 
-    public getAdminSettingsUpdate(data:FormData): [boolean, articleAdminSetting[]]{
+    private otherTagsDifference(otherTags:string[]):boolean{
+        // true if there's a difference
+        if (!this.adminSettings.tags){
+            return otherTags.length != 0;
+        }
+        if(otherTags.length != this.adminSettings.tags.length){
+            return true
+        }
+        for (const tag of otherTags){
+            if (!this.adminSettings.tags.includes(tag)){
+                return true
+            }
+        }
+        return false
+    }
+
+    public async getAdminSettingsUpdate(
+        data:FormData,
+        client:DynamoDBDocumentClient,
+        tableName:string,
+        subCategory?:string,
+    ): Promise<[boolean, articleAdminSettings]>{
+        let differenceFound = false;
+
         const admins = generateListFieldValues('admins',data)
-        const adminPerms:articleAdminSetting[] = admins.map(adminUser=>{
+        const adminPerms:articleAdminUser[] = admins.map(adminUser=>{
             return {
                 id:adminUser.value,
                 reference:adminUser.object,
@@ -371,7 +400,7 @@ export class PushDynamoArticle extends PushDynamoClass{
             }
         })
         const editors = generateListFieldValues('editors',data)
-        const editorPerms:articleAdminSetting[] = editors.map(adminUser=>{
+        const editorPerms:articleAdminUser[] = editors.map(adminUser=>{
             return {
                 id:adminUser.value,
                 reference:adminUser.object,
@@ -380,7 +409,7 @@ export class PushDynamoArticle extends PushDynamoClass{
             }
         })
         const reviewers = generateListFieldValues('reviewers',data)
-        const reviewerPerms:articleAdminSetting[] = reviewers.map(adminUser=>{
+        const reviewerPerms:articleAdminUser[] = reviewers.map(adminUser=>{
             return {
                 id:adminUser.value,
                 reference:adminUser.object,
@@ -388,30 +417,62 @@ export class PushDynamoArticle extends PushDynamoClass{
                 permission: 'reviewer',
             }
         })
-        const retrievedSettings = [...adminPerms,...editorPerms,...reviewerPerms]
+        const retrievedAdminUserSettings = [...adminPerms,...editorPerms,...reviewerPerms]
         const settingsLength = adminPerms.length+editorPerms.length+reviewerPerms.length+1;
-        const creatorSetting = this.adminSettings.find(obj=>{return obj.permission == 'creator'})
-        if (settingsLength!=this.adminSettings.length) {
-            return [true, [...retrievedSettings,creatorSetting!]]
-        }
-        for (const value of retrievedSettings) {
-            const currentSetting = this.adminSettings.find(obj=>{return obj.id == value.id})
-            if (!currentSetting) {
-                return [true, [...retrievedSettings,creatorSetting!]]
-            }
-            if (!this.adminSettingCompare(value,currentSetting)) {
-                console.log(value)
-                console.log(currentSetting)
-                return [true, [...retrievedSettings,creatorSetting!]]
+        const creatorSetting = this.adminSettings.admins.find(obj=>{return obj.permission == 'creator'})
+        if (settingsLength!=this.adminSettings.admins.length) {
+            differenceFound = true
+        } else {
+            for (const value of retrievedAdminUserSettings) {
+                const currentSetting = this.adminSettings.admins.find(obj=>{return obj.id == value.id})
+                if (!currentSetting) {
+                    differenceFound = true
+                } else if (!this.adminSettingCompare(value,currentSetting!)) {
+                    differenceFound = true
+                }
             }
         }
-        return [false,[]]
+
+        let tags:string[]|undefined;
+
+        if (this.adminFormNodes.find(obj=>obj.type=='freeTags')||this.adminFormNodes.find(obj=>obj.type=='tags')){
+            const newTags = data.getAll('ArticleTagsNew') as string[]
+            const otherTags = data.getAll('ArticleTags') as string[]
+            if (
+                newTags.length > 0 ||
+                this.otherTagsDifference(otherTags)
+            ) {
+                tags = [...otherTags]
+                if (newTags.length > 0){
+                    const newIDs = await PushDynamoTag.genIDs(newTags.length, client)
+                    await PushDynamoTag.batchWriteGivenIDs(
+                        client,
+                        tableName,
+                        newTags,
+                        newIDs,
+                        subCategory
+                    )
+                    tags = [...otherTags,...newIDs]
+                }
+                differenceFound = true
+            }
+        }
+        if (!differenceFound){
+            return [false,{admins:[]}]
+        }
+        return [
+            true,
+            {
+                admins: [...retrievedAdminUserSettings,creatorSetting!],
+                tags: tags
+            }
+        ]
     }
 
     public static async handleSettingsSubmitPatch(
             client:DynamoDBDocumentClient,
             articleId:string,
-            adminSettings:articleAdminSetting[]
+            adminSettings:articleAdminSettings
         ){
         const table = process.env.NEXT_PUBLIC_TABLE_NAME as string
         const objectId = articleId
@@ -497,7 +558,14 @@ export class PushDynamoArticle extends PushDynamoClass{
             name = uuidv4() + name
             const bytes = await file.arrayBuffer();
             const imageBuffer = Buffer.from(bytes);
-            const s3Client = new S3Client({});
+            const config = {
+                region: process.env.NEXT_PUBLIC_REGION as string,
+                credentials:{
+                    accessKeyId:process.env.NEXT_PUBLIC_ACCESS_KEY as string,
+                    secretAccessKey:process.env.NEXT_PUBLIC_SECRET_KEY as string
+                }
+            }
+            const s3Client = new S3Client(config);
             const command = new PutObjectCommand({
                 Bucket: process.env.NEXT_PUBLIC_IMAGE_BUCKET,
                 Key: name,
@@ -548,7 +616,7 @@ export class PushDynamoArticle extends PushDynamoClass{
                 lastSavedDate:updateTime,
                 formSettings:JSON.parse(formData.get('settings') as string) as articleFormSettings,
                 contributors:JSON.parse(formData.get('contributors') as string).contributors as KVRecord[],
-                adminSettings:JSON.parse(formData.get('adminSettings') as string).adminSettings as articleAdminSetting[],
+                adminSettings:JSON.parse(formData.get('adminSettings') as string).adminSettings as articleAdminSettings,
                 createdAt:updateTime
             }
         } else {
@@ -561,7 +629,7 @@ export class PushDynamoArticle extends PushDynamoClass{
                 lastSavedDate:updateTime,
                 formSettings:JSON.parse(formData.get('settings') as string) as articleFormSettings,
                 contributors:JSON.parse(formData.get('contributors') as string).contributors as KVRecord[],
-                adminSettings:JSON.parse(formData.get('adminSettings') as string).adminSettings as articleAdminSetting[],
+                adminSettings:JSON.parse(formData.get('adminSettings') as string).adminSettings as articleAdminSettings,
                 publishedContent:formData.get('content')?formData.get('content') as string:'[BODY]',
                 firstPublishedDate:updateTime,
                 latestUpdatedDate:updateTime,
@@ -579,7 +647,7 @@ export class PushDynamoArticle extends PushDynamoClass{
                 Item: newItem
             })
             await client.send(putCommand);
-            return NextResponse.json({success: true}, {status:200});
+            return NextResponse.json({success: true}, {status:200, statusText:newId});
         } catch (e) {
             throw e;
         }
@@ -608,7 +676,14 @@ export class PushDynamoArticle extends PushDynamoClass{
 
     public static async deleteHeaderFromS3(givenImageName:string,givenArticleId:string){
         const imageName = givenImageName.split('/')[givenImageName.split('/').length-1]
-        const s3Client = new S3Client({})
+        const config = {
+            region: process.env.NEXT_PUBLIC_REGION as string,
+            credentials:{
+                accessKeyId:process.env.NEXT_PUBLIC_ACCESS_KEY as string,
+                secretAccessKey:process.env.NEXT_PUBLIC_SECRET_KEY as string
+            }
+        }
+        const s3Client = new S3Client(config);
         const deleteCommand = new DeleteObjectCommand(
             {
                 Bucket: process.env.NEXT_PUBLIC_IMAGE_BUCKET,
@@ -661,7 +736,14 @@ export class PushDynamoArticle extends PushDynamoClass{
             }
             const bytes = await file.arrayBuffer();
             const imageBuffer = Buffer.from(bytes);
-            const s3Client = new S3Client({});
+            const config = {
+                region: process.env.NEXT_PUBLIC_REGION as string,
+                credentials:{
+                    accessKeyId:process.env.NEXT_PUBLIC_ACCESS_KEY as string,
+                    secretAccessKey:process.env.NEXT_PUBLIC_SECRET_KEY as string
+                }
+            }
+            const s3Client = new S3Client(config);
             const command = new PutObjectCommand({
                 Bucket: process.env.NEXT_PUBLIC_IMAGE_BUCKET,
                 Key: name,
@@ -789,7 +871,7 @@ export class PushDynamoArticle extends PushDynamoClass{
             publishedContent:this.publishedContent,
             contributors:contributors,
             published:this.published,
-            latestSavedDate:this.lastSavedDate
+            latestSavedDate:this.lastSavedDate,
         }
     }
 
