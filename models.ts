@@ -1,17 +1,73 @@
-import {PushDynamoClass} from "@/classes";
+// import {PushDynamoClass} from "@/classes";
 import {SubmitEvent} from "react";
 import {pushFormNode} from "@/app/components/PushForm";
 import {
-    DynamoDBDocumentClient,
+    BatchWriteCommand, DeleteCommand,
+    DynamoDBDocumentClient, GetCommand,
     PutCommand,
     PutCommandOutput,
-    QueryCommand,
+    QueryCommand, UpdateCommand,
     UpdateCommandOutput
 } from "@aws-sdk/lib-dynamodb";
 import {dynamoObject, PushIdea, PushProject, PushTag} from "@/types";
 import {v4 as uuidv4} from "uuid";
 import {getDynamoClient} from "@/globalFunctions/functions";
 import {DynamoDBClient} from "@aws-sdk/client-dynamodb";
+
+abstract class PushDynamoClass {
+
+    // No Post Method is outlined, even abstractly, as different objects may use compound or single p-keys with different names
+
+    protected static dynamoGet(client:DynamoDBDocumentClient,
+                               table:string,
+                               key:dynamoObject){
+        const getCommand = new GetCommand({
+            TableName: table,
+            Key: key
+        });
+        return client.send(getCommand);
+    }
+
+    protected static dynamoPatch(
+        client:DynamoDBDocumentClient,
+        table:string,
+        key:dynamoObject,
+        changes:dynamoObject
+    ):Promise<UpdateCommandOutput>{
+        const commands:string[] = [];
+        const expressionAttributeValues:dynamoObject = {};
+        const expressionAttributeNames:Record<string, string> = {};
+        const keys = Object.keys(changes);
+        for (const key of keys) {
+            let attributeAlias = key[0];
+            while (expressionAttributeNames['#'+attributeAlias]) {
+                attributeAlias = attributeAlias + "a";
+            }
+            expressionAttributeNames['#'+attributeAlias] = key;
+            commands.push(`#${attributeAlias} = :${attributeAlias}`);
+            expressionAttributeValues[`:${attributeAlias}`] = changes[key];
+        }
+        const updateExpression = `SET ${commands.join(', ')}`
+        const updateCommand = new UpdateCommand({
+            TableName: table,
+            Key: key,
+            UpdateExpression: updateExpression,
+            ExpressionAttributeValues: expressionAttributeValues,
+            ExpressionAttributeNames: expressionAttributeNames
+        });
+        return client.send(updateCommand);
+    }
+
+    protected static dynamoDelete(client:DynamoDBDocumentClient,
+                                  table:string,
+                                  key:dynamoObject){
+        const deleteCommand = new DeleteCommand({
+            TableName: table,
+            Key: key
+        })
+        return client.send(deleteCommand);
+    }
+}
 
 export class PushDynamoProject extends PushDynamoClass{
     public table:string = 'daily-push';
@@ -378,6 +434,98 @@ export class PushDynamoTag extends PushDynamoClass{
             },
             {title:title}
         )
+    }
+
+    public static async genIDs(
+        numberNeeded:number,
+        client:DynamoDBDocumentClient,
+    ):Promise<string[]>{
+        const IDs:string[] = []
+        for (let i = 0; i < numberNeeded; i++){
+            let newId = uuidv4();
+            let potentialTag = await PushDynamoTag.get(client,newId);
+            while(potentialTag.Item){
+                newId = uuidv4();
+                potentialTag = await PushDynamoTag.get(client,newId);
+            }
+            IDs.push(newId);
+        }
+        return IDs
+    }
+
+    public static async batchWriteGivenIDs(
+        client:DynamoDBDocumentClient,
+        tableName:string,
+        values:string[],
+        IDs:string[],
+        subcategory?:string
+    ){
+        if (
+            IDs.length < values.length
+        ){
+            throw new Error('not enough IDs provided')
+        }
+        const numberOfValues = values.length;
+        const tags = []
+        for (let i=0; i<numberOfValues; i++){
+            const iValue = values[i]
+            const iID = IDs[i]
+            const newTag:PushTag={
+                title:iValue,
+                objectType: "tag",
+                objectId:iID,
+                createdAt:new Date().toString(),
+                subcategory:subcategory
+            }
+            tags.push({
+                    PutRequest: {
+                        Item:newTag
+                    }
+                }
+            );
+        }
+        const command = new BatchWriteCommand({
+            RequestItems: {
+                [tableName]: tags,
+            },
+        });
+        return client.send(command);
+    }
+
+    public static async batchWrite(
+        client:DynamoDBDocumentClient,
+        tableName:string,
+        values:string[],
+        subcategory?:string
+    ){
+        const tags = []
+        for (const value of values){
+            let newId = uuidv4();
+            let potentialTag = await PushDynamoTag.get(client,newId);
+            while(potentialTag.Item){
+                newId = uuidv4();
+                potentialTag = await PushDynamoTag.get(client,newId);
+            }
+            const newTag:PushTag={
+                title:value,
+                objectType: "tag",
+                objectId:newId,
+                createdAt:new Date().toString(),
+                subcategory:subcategory
+            }
+            tags.push({
+                PutRequest: {
+                    Item:newTag
+                    }
+                }
+            );
+        }
+        const command = new BatchWriteCommand({
+            RequestItems: {
+                [tableName]: tags,
+            },
+        });
+        return client.send(command);
     }
 }
 

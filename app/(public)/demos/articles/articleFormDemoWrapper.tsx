@@ -3,7 +3,7 @@
 import {SubmitEvent, useState} from "react";
 import ArticleForm from "@/app/components/articleElements";
 import {
-    articleAdminSetting,
+    articleAdminUser,
     articleAdminFormSettings,
     articleFormSettings,
     KVRecord,
@@ -63,11 +63,11 @@ const ArticleFormDemoWrapper=({userSub,adminSettings,suggestedKVs,kvReferences,a
     const handleSettingsSubmit=async (event: SubmitEvent<HTMLFormElement>)=>{
         event.preventDefault()
         const data = new FormData(event.target);
-        const creatorSetting = article.adminSettings.find(obj=>{return obj.permission == 'creator'}) as articleAdminSetting
+        const creatorSetting = article.adminSettings.admins.find(obj=>{return obj.permission == 'creator'}) as articleAdminUser
         const newAdminSettings = PushDynamoArticle.getNewAdminSettings(data,creatorSetting);
         const plainArticle = article.plainArticle();
         const updatedArticle = new PushDynamoArticle(plainArticle);
-        updatedArticle.adminSettings = newAdminSettings;
+        updatedArticle.adminSettings.admins = newAdminSettings;
         updatedArticle.setFormSettings(articleSettings);
         updatedArticle.setAdminFormSettings(adminSettings);
         setArticle(updatedArticle);
